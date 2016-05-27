@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">OneFignerSlyte</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">This is section: %1$d</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello</string>
+
+    <string name="title_activity_all_app_list">AllAppListActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+</resources>

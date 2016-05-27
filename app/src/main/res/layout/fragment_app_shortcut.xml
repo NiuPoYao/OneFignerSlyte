@@ -1,0 +1,81 @@
+<!--RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="bottom"
+    tools:context="xniuniux.onefignerslyte.AppShortcutFragment"-->
+
+<!-- TODO: Update blank fragment layout -->
+
+    <xniuniux.onefignerslyte.CircleListLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/circle_list_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom|end"
+        android:background="@color/colorWhiteTrans"
+        android:layout_marginBottom="@dimen/app_list_bottom_margin"
+        android:layout_marginLeft="@dimen/app_list_side_margin"
+        android:layout_marginRight="@dimen/app_list_side_margin">
+
+        <ImageButton
+            android:id="@+id/menu_1_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorTransparent"
+            android:scaleType="matrix"
+            android:visibility="invisible"/>
+        <ImageButton
+            android:id="@+id/menu_1_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorTransparent"
+            android:scaleType="matrix"
+            android:visibility="invisible"/>
+        <ImageButton
+            android:id="@+id/menu_1_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorTransparent"
+            android:scaleType="matrix"
+            android:visibility="invisible"/>
+        <ImageButton
+            android:id="@+id/menu_1_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorTransparent"
+            android:scaleType="matrix"
+            android:visibility="invisible"/>
+        <ImageButton
+            android:id="@+id/menu_1_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorTransparent"
+            android:scaleType="matrix"
+            android:visibility="invisible"/>
+        <ImageButton
+            android:id="@+id/menu_1_6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorTransparent"
+            android:scaleType="matrix"
+            android:visibility="invisible"/>
+        <ImageButton
+            android:id="@+id/menu_1_7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorTransparent"
+            android:scaleType="matrix"
+            android:visibility="invisible"/>
+        <ImageButton
+            android:id="@+id/menu_1_8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/colorTransparent"
+            android:scaleType="matrix"
+            android:visibility="invisible"/>
+
+    </xniuniux.onefignerslyte.CircleListLayout>
+<!--/RelativeLayout-->
