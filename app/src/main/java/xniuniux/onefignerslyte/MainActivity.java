@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
                 if (action == FRG_ACTION_CHANGE_SHORTCUT){
                     mAppChooserFragment = new AppChooserFragment();
                     mAppChooserFragment.setLaunchableAppsRI(mLaunchableApps);
-                    mAppChooserFragment.setCandidateNum(mAppShortcutFragment.getSelectedNum());
+                    mAppChooserFragment.setVacancies(mAppShortcutFragment.getSelectedApp());
                     fm.beginTransaction().replace(R.id.main_content, mAppChooserFragment).addToBackStack(null).commit();
                     break;
                 }
@@ -263,12 +263,12 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
 
     public class getIconSet extends AsyncTask<Object, Void, Drawable> {
 
-        private AppShortInfo list;
+        private AppShortInfo appInfo;
         private ResolveInfo ri;
 
         @Override
         protected Drawable doInBackground(final Object... param){
-            list = (AppShortInfo) param[0];
+            appInfo = (AppShortInfo) param[0];
             ri = (ResolveInfo) param[1];
             Log.d(LOG_TAG, "this is before load icon");
             return ri.loadIcon(mPm);
@@ -278,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         @Override
         protected void onPostExecute(Drawable icon){
             super.onPostExecute(icon);
-            list.icons = highlightImage(((BitmapDrawable) icon).getBitmap());
+            appInfo.icons = highlightImage(((BitmapDrawable) icon).getBitmap());
         }
     }
 

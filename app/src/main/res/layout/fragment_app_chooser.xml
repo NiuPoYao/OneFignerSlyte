@@ -17,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="top|start">
+
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
@@ -47,6 +48,7 @@
 
             </LinearLayout>
         </GridLayout>
+
         <GridView
             android:id="@+id/app_chooser_grid_list"
             android:numColumns="5"
@@ -55,6 +57,7 @@
             android:layout_gravity="bottom|end"
             android:minHeight="60dp"
             android:padding="12dp"/>
+
     </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton

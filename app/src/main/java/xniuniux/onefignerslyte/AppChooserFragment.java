@@ -1,7 +1,6 @@
 package xniuniux.onefignerslyte;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
@@ -13,7 +12,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.BaseAdapter;
+import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -31,12 +33,13 @@ public class AppChooserFragment extends Fragment {
 
     private String LOG_TAG = "AppChooserFragment";
 
-    private int mCandidateNum=0;
-
+    private List<Integer> mCandidates = new ArrayList<>();
+    private List<Integer> mVacancies = new ArrayList<>();
     private FloatingActionButton mConfirmFab;
-    private OnFragmentInteractionListener mListener;
+    private OnFragmentInteractionListener mFragListener;
 
     private Context mContext;
+    private GridLayout mCandidatesLayout;
     private PackageManager mPm;
     private List<ResolveInfo> mLaunchableAppsRI;
 
@@ -49,8 +52,8 @@ public class AppChooserFragment extends Fragment {
         this.mLaunchableAppsRI = list;
     }
 
-    public void setCandidateNum(int cn){
-        this.mCandidateNum = cn;
+    public void setVacancies(ArrayList<Integer> list){
+        this.mVacancies = list;
     }
 
     @Override
@@ -59,7 +62,7 @@ public class AppChooserFragment extends Fragment {
         mContext = context;
         mPm = context.getPackageManager();
         if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
+            mFragListener = (OnFragmentInteractionListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -72,22 +75,60 @@ public class AppChooserFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_app_chooser, container, false);
 
+        mCandidatesLayout = (GridLayout) rootView.findViewById(R.id.app_chooser_candidate);
+
+        for (int i = 0; i < mVacancies.size(); i++){
+            int pos = mVacancies.get(i);
+            ImageView superfluous =(ImageView) inflater.inflate(R.layout.element_app_shortcut, null);
+            MainActivity.AppShortInfo app = MainActivity.appList.get(pos);
+            superfluous.setTag(pos);
+            superfluous.setImageBitmap(app.icons.get(0));
+            addToCandidates(superfluous,1);
+
+        }
+
         GridView appList = (GridView) rootView.findViewById(R.id.app_chooser_grid_list);
 
-        Intent i = new Intent(Intent.ACTION_MAIN, null);
-        i.addCategory(Intent.CATEGORY_LAUNCHER);
-
         appList.setAdapter(new appAdapter(mContext, mLaunchableAppsRI));
+        appList.setOnItemSelectedListener(mAppSelectedListener);
 
         mConfirmFab = (FloatingActionButton) rootView.findViewById(R.id.fab_confirm);
         mConfirmFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_CONFIRM);
+                mFragListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_CONFIRM);
             }
         });
 
         return rootView;
+    }
+
+    private OnItemSelectedListener mAppSelectedListener =  new OnItemSelectedListener() {
+
+        @Override
+        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            ImageView button = (ImageView) view.findViewById(R.id.app_list_image);
+            addToCandidates(button, 2);
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> adapterView) {
+
+        }
+    };
+
+    private AdapterView.OnItemClickListener mAppClickListener = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            view.setSelected(!view.isSelected());
+        }
+    };
+
+    public void addToCandidates(ImageView view, int row){
+
+        mCandidatesLayout.addView(view, new GridLayout.LayoutParams(
+                GridLayout.spec(1),
+                GridLayout.spec(row)));
     }
 
     @Override
@@ -98,14 +139,14 @@ public class AppChooserFragment extends Fragment {
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
+        if (mFragListener != null) {
         }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        mFragListener = null;
     }
 
 

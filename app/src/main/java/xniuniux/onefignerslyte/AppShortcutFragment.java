@@ -20,7 +20,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -30,16 +30,17 @@ import xniuniux.onefignerslyte.MainActivity.AppShortInfo;
 public class AppShortcutFragment extends Fragment {
 
     String LOG_TAG = "AppShortcutFragment";
-    public OnFragmentInteractionListener interactionListener;
-    public CircleListLayout cLayout;
-    public int mSelectedNum = 1;
+    private OnFragmentInteractionListener interactionListener;
+    private CircleListLayout cLayout;
+    private ArrayList<Integer> mSelectedApp = new ArrayList<>();
 
     public AppShortcutFragment() {
     }
 
 
-    public int getSelectedNum(){
-        return mSelectedNum;
+    public ArrayList<Integer> getSelectedApp(){
+        mSelectedApp.add(3);
+        return mSelectedApp;
     }
 
     @Override
@@ -60,7 +61,7 @@ public class AppShortcutFragment extends Fragment {
         cLayout = (CircleListLayout) rootView.findViewById(R.id.circle_list_layout);
 
         for (int i = 0; i < cLayout.getAppShortcutsNum(); i++){
-            ImageButton button = (ImageButton) inflater.inflate(R.layout.element_app_shortcut, null);
+            ImageView button = (ImageView) inflater.inflate(R.layout.element_app_shortcut, null);
             AppShortInfo app = MainActivity.appList.get(i);
             button.setTag(i);
             button.setImageBitmap(app.icons.get(0));
@@ -98,7 +99,7 @@ public class AppShortcutFragment extends Fragment {
                 final float startX = CLayout.getWidth()/2;
                 final float startY = CLayout.getHeight()/2;
                 for ( int i = 0; i < CLayout.getChildCount(); i++ ){
-                    final ImageButton child = (ImageButton) CLayout.getChildAt(i);
+                    final ImageView child = (ImageView) CLayout.getChildAt(i);
                     handler.postDelayed(
                             new Runnable() {
                                 @Override
@@ -194,7 +195,7 @@ public class AppShortcutFragment extends Fragment {
         @Override
         public boolean onTouch(View view, MotionEvent ev) {
             boolean consume = true;
-            ImageButton button = (ImageButton) view;
+            ImageView button = (ImageView) view;
             int action = ev.getAction();
 
             if (action == MotionEvent.ACTION_DOWN) {
