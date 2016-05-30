@@ -18,35 +18,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="top|start">
 
-            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:gravity="center_horizontal"
-                android:layout_height="match_parent"
-                android:padding="12dp">
-
-                <ImageView
-                    android:id="@+id/app_list_image"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/colorTransparent"
-                    android:scaleType="fitCenter"
-                    android:adjustViewBounds="true"
-                    android:layout_gravity="top"
-                    android:visibility="visible"
-                    />
-
-                <TextView
-                    android:id="@+id/app_list_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/colorWhite"
-                    android:gravity="top|center_horizontal"
-                    android:maxLines="2"
-                    android:minLines="2"
-                    android:visibility="visible"/>
-
-            </LinearLayout>
         </GridLayout>
 
         <GridView
@@ -56,7 +27,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:minHeight="60dp"
-            android:padding="12dp"/>
+            android:padding="12dp"
+            android:clickable="true"/>
 
     </LinearLayout>
 

@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -84,7 +85,7 @@ public class AppChooserFragment extends Fragment {
             superfluous.setTag(pos);
             superfluous.setImageBitmap(app.icons.get(0));
             superfluous.setVisibility(View.VISIBLE);
-            addToCandidates(superfluous,1);
+            addToCandidates(superfluous,0);
 
         }
 
@@ -92,6 +93,7 @@ public class AppChooserFragment extends Fragment {
 
         appList.setAdapter(new appAdapter(mContext, mLaunchableAppsRI));
         appList.setOnItemSelectedListener(mAppSelectedListener);
+        appList.setOnItemClickListener(mAppClickListener);
 
         mConfirmFab = (FloatingActionButton) rootView.findViewById(R.id.fab_confirm);
         mConfirmFab.setOnClickListener(new View.OnClickListener() {
@@ -107,9 +109,11 @@ public class AppChooserFragment extends Fragment {
     private OnItemSelectedListener mAppSelectedListener =  new OnItemSelectedListener() {
 
         @Override
-        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
+            Log.d(LOG_TAG,"item selected");
             ImageView button = (ImageView) view.findViewById(R.id.app_list_image);
-            addToCandidates(button, 2);
+            addToCandidates(button, 1);
+
         }
 
         @Override
@@ -120,15 +124,17 @@ public class AppChooserFragment extends Fragment {
 
     private AdapterView.OnItemClickListener mAppClickListener = new AdapterView.OnItemClickListener() {
         @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-            view.setSelected(!view.isSelected());
+        public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
+            Log.d(LOG_TAG,"item clicked" + mLaunchableAppsRI.get((int) view.getTag()).loadLabel(mPm));
+            adapterView.setSelection(pos);
+            //view.setSelected(!view.isSelected());
         }
     };
 
     public void addToCandidates(ImageView view, int row){
 
         mCandidatesLayout.addView(view, new GridLayout.LayoutParams(
-                GridLayout.spec(1),
+                GridLayout.spec(0),
                 GridLayout.spec(row)));
     }
 
@@ -161,7 +167,10 @@ public class AppChooserFragment extends Fragment {
         }
 
         public int getCount() {
-            return mRIs.size();
+            if (mRIs != null) {
+                return mRIs.size();
+            }
+            return 0;
         }
 
         public Object getItem(int position) {
