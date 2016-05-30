@@ -11,8 +11,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 /**
@@ -78,20 +76,20 @@ public class CircleListLayout extends ViewGroup {
         mOriginVertical = Math.round(length/2);
         mOriginHorizontal = Math.round(length/2);
         maxChildWidth = (int) Math.round( mRadius * 0.8 * Math.sin(mDeltaAngle) );
-
+        Log.d(LOG_TAG+" onMeasure ", "" + maxChildWidth);
         measureChildren(MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST),
                 MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST));
 
         int childCount = getChildCount();
         for (int i=0; i<childCount; i++) {
             View child = getChildAt(i);
-            Log.d(LOG_TAG,"view " + i + " " + child.toString());
             int thisChildWidth = maxChildWidth;
             int thisChildHeight = maxChildWidth;
-            Log.d(LOG_TAG+" onMeasure ", "" + child.getMeasuredWidth() + " " + child.getMeasuredHeight());
+            Log.d(LOG_TAG+" onMeasure ", child.getMeasuredWidth() + " " + child.getMeasuredHeight());
 
             thisChildWidth /= i / mAppsPerLayer + 1;
             thisChildHeight /= i / mAppsPerLayer + 1;
+            Log.d(LOG_TAG+" onMeasure ", thisChildWidth + " " + thisChildHeight);
             child.measure(MeasureSpec.makeMeasureSpec(thisChildWidth, MeasureSpec.EXACTLY),
                           MeasureSpec.makeMeasureSpec(thisChildHeight, MeasureSpec.EXACTLY));
 

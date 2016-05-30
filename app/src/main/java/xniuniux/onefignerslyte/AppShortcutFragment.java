@@ -21,8 +21,6 @@ import android.view.ViewTreeObserver;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -34,9 +32,14 @@ public class AppShortcutFragment extends Fragment {
     String LOG_TAG = "AppShortcutFragment";
     public OnFragmentInteractionListener interactionListener;
     public CircleListLayout cLayout;
-
+    public int mSelectedNum = 1;
 
     public AppShortcutFragment() {
+    }
+
+
+    public int getSelectedNum(){
+        return mSelectedNum;
     }
 
     @Override
@@ -49,10 +52,6 @@ public class AppShortcutFragment extends Fragment {
         }
     }
 
-    public void setAppList(ArrayList<AppShortInfo> list ){
-        MainActivity.appArrayList = list;
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -61,20 +60,16 @@ public class AppShortcutFragment extends Fragment {
         cLayout = (CircleListLayout) rootView.findViewById(R.id.circle_list_layout);
 
         for (int i = 0; i < cLayout.getAppShortcutsNum(); i++){
-            ImageButton button = new ImageButton(getContext());
-            AppShortInfo app = MainActivity.appArrayList.get(i);
-            button.setVisibility(View.INVISIBLE);
+            ImageButton button = (ImageButton) inflater.inflate(R.layout.element_app_shortcut, null);
+            AppShortInfo app = MainActivity.appList.get(i);
             button.setTag(i);
-            button.setPadding(0,0,0,0);
             button.setImageBitmap(app.icons.get(0));
-            button.setScaleType(ImageView.ScaleType.CENTER);
-            button.setAdjustViewBounds(true);
-            button.setBackgroundColor(0x00000000);
             if (i<cLayout.mAppsPerLayer){
                 button.setImageAlpha(180);
             } else {
                 button.setImageAlpha(64);
             }
+            Log.d(LOG_TAG,button.getMeasuredWidth() + " " + button.getMeasuredHeight());
             button.setOnClickListener(onClickListener);
             button.setOnLongClickListener(onLongClickListener);
             button.setOnTouchListener(onTouchListener);
@@ -174,7 +169,7 @@ public class AppShortcutFragment extends Fragment {
             Toast.makeText(getContext(), "click " + view.getTransitionName(),
                     Toast.LENGTH_SHORT).show();
             Log.d(LOG_TAG,"onClick");
-            AppShortInfo app = MainActivity.appArrayList.get((int) view.getTag());
+            AppShortInfo app = MainActivity.appList.get((int) view.getTag());
             Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
             AppShortcutFragment.this.startActivity(i);
 
@@ -185,8 +180,8 @@ public class AppShortcutFragment extends Fragment {
         @Override
         public boolean onLongClick(View view){
             cLayout.setRotateEnable(false);
-            interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_LAUNCH_APPCHOOSER);
-            //view.setBackground(new BitmapDrawable(getResources(), MainActivity.appArrayList.get((int) view.getTag()).icons.get(2)));
+            interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_CHANGE_SHORTCUT);
+            //view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(2)));
 
             Log.d(LOG_TAG,"onLongClick");
             return  true;
@@ -205,7 +200,7 @@ public class AppShortcutFragment extends Fragment {
             if (action == MotionEvent.ACTION_DOWN) {
                 moveFromX = ev.getX();
                 moveFromY = ev.getY();
-                view.setBackground(new BitmapDrawable(getResources(), MainActivity.appArrayList.get((int) view.getTag()).icons.get(1)));
+                view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(1)));
                 consume = false;
             }
 

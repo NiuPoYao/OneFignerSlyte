@@ -11,6 +11,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -31,6 +32,8 @@ import android.view.Window;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements AppShortcutFragment.OnFragmentInteractionListener,
@@ -40,21 +43,22 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
 
     /** Used for interaction with child fragments*/
     public static final int FRG_ACTION_KILL = -1;
-    public static final int FRG_ACTION_LAUNCH_APPCHOOSER = 1;
+    public static final int FRG_ACTION_CHANGE_SHORTCUT = 1;
     public static final int FRG_ACTION_CONFIRM= 2;
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
     private AppShortcutFragment mAppShortcutFragment = new AppShortcutFragment();
     private AppChooserFragment mAppChooserFragment;
-    public boolean isAppListShow = false;
-    public PackageManager packageManager;
+    private boolean isAppListShow = false;
+    private PackageManager mPm;
+    private ArrayList<ResolveInfo> mLaunchableApps;
 
-    public static ArrayList<AppShortInfo> appArrayList;
+    public static List<AppShortInfo> appList;
 
     public class AppShortInfo {
         CharSequence name;
-        ArrayList<Bitmap> icons;
+        List<Bitmap> icons;
     }
 
     @Override
@@ -97,23 +101,31 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
             });
         }
 
-        //TODO: do this in background? AsyncTask?
-        
-        if (appArrayList==null || appArrayList.size()<24){
-            Log.d(LOG_TAG,"retrieving app data");
-            Intent i = new Intent(Intent.ACTION_MAIN, null);
-            i.addCategory(Intent.CATEGORY_LAUNCHER);
-            packageManager = getPackageManager();
-            List<ResolveInfo> launchableApps = packageManager.queryIntentActivities(i, 0);
-            appArrayList = new ArrayList<>();
-            for (ResolveInfo RI : launchableApps ){
+        Intent i = new Intent(Intent.ACTION_MAIN, null);
+        i.addCategory(Intent.CATEGORY_LAUNCHER);
+        mPm = getPackageManager();
+        mLaunchableApps = (ArrayList<ResolveInfo>) mPm.queryIntentActivities(i, 0);
+        Collections.sort(mLaunchableApps, new Comparator<ResolveInfo>(){
+            public int compare(ResolveInfo emp1, ResolveInfo emp2) {
+                return emp1.loadLabel(mPm).toString().compareToIgnoreCase(emp2.loadLabel(mPm).toString());
+            }
+        });
+
+        if (appList == null || appList.size()<24){
+            Log.d(LOG_TAG, "retrieving app data");
+            if (appList == null) {
+                appList = new ArrayList<>();
+            }
+            for (ResolveInfo RI : mLaunchableApps){
                 AppShortInfo app = new AppShortInfo();
                 app.name = RI.activityInfo.packageName;
-                app.icons = highlightImage(((BitmapDrawable) RI.activityInfo.loadIcon(packageManager)).getBitmap());
-                appArrayList.add(app);
+                new getIconSet().execute(app, RI);
+                appList.add(app);
+                if (appList.size()>=24){
+                    break;
+                }
             }
         }
-        mAppShortcutFragment.setAppList(appArrayList);
     }
 
 
@@ -127,8 +139,10 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
                     fm.beginTransaction().remove(mAppShortcutFragment).commit();
                     break;
                 }
-                if (action == FRG_ACTION_LAUNCH_APPCHOOSER){
+                if (action == FRG_ACTION_CHANGE_SHORTCUT){
                     mAppChooserFragment = new AppChooserFragment();
+                    mAppChooserFragment.setLaunchableAppsRI(mLaunchableApps);
+                    mAppChooserFragment.setCandidateNum(mAppShortcutFragment.getSelectedNum());
                     fm.beginTransaction().replace(R.id.main_content, mAppChooserFragment).addToBackStack(null).commit();
                     break;
                 }
@@ -246,40 +260,52 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         }
     }
 
-    public ArrayList<Bitmap> highlightImage(Bitmap icon) {
 
-        Log.d(LOG_TAG, "Draw:" + icon.getWidth() + " " + icon.getHeight());
+    public class getIconSet extends AsyncTask<Object, Void, Drawable> {
 
-        ArrayList<Bitmap> icons = new ArrayList<>();
+        private AppShortInfo list;
+        private ResolveInfo ri;
+
+        @Override
+        protected Drawable doInBackground(final Object... param){
+            list = (AppShortInfo) param[0];
+            ri = (ResolveInfo) param[1];
+            Log.d(LOG_TAG, "this is before load icon");
+            return ri.loadIcon(mPm);
+
+        }
+
+        @Override
+        protected void onPostExecute(Drawable icon){
+            super.onPostExecute(icon);
+            list.icons = highlightImage(((BitmapDrawable) icon).getBitmap());
+        }
+    }
+
+    public List<Bitmap> highlightImage(Bitmap icon) {
+
+        List<Bitmap> icons = new ArrayList<>();
         Paint ptBlur = new Paint();
 
         ptBlur.setMaskFilter(new BlurMaskFilter(25, BlurMaskFilter.Blur.OUTER));
         int[] offsetXY = new int[2];
         Bitmap backLight = icon.extractAlpha(ptBlur, offsetXY);
 
-        ptBlur.setMaskFilter(new BlurMaskFilter(20, BlurMaskFilter.Blur.OUTER));
-        int[] offsetXYSmall = new int[2];
-        Bitmap backLightSmall = icon.extractAlpha(ptBlur, offsetXYSmall);
-
         Paint ptAlphaColor = new Paint();
 
         Bitmap iconOut = Bitmap.createBitmap(backLight.getWidth() , backLight.getHeight() , Bitmap.Config.ARGB_8888);
-        Bitmap highlighter = Bitmap.createBitmap(backLight.getWidth() , backLight.getHeight() ,   Bitmap.Config.ARGB_8888);
-        Bitmap highlighterSmall = Bitmap.createBitmap(backLight.getWidth() , backLight.getHeight() ,   Bitmap.Config.ARGB_8888);
-
+        Bitmap highlightWhite = Bitmap.createBitmap(backLight.getWidth() , backLight.getHeight() ,   Bitmap.Config.ARGB_8888);
+        Bitmap highlightYellow = Bitmap.createBitmap(backLight.getWidth() , backLight.getHeight() ,   Bitmap.Config.ARGB_8888);
 
         ptAlphaColor.setColor(ContextCompat.getColor(this, R.color.long_pressed_highlight));
-        Canvas canvas = new Canvas(highlighter);
+        Canvas canvas = new Canvas(highlightYellow);
         canvas.drawColor(0, PorterDuff.Mode.CLEAR);
         canvas.drawBitmap(backLight, 0, 0, ptAlphaColor);
 
-
         ptAlphaColor.setColor(ContextCompat.getColor(this, R.color.pressed_highlight));
-        canvas = new Canvas(highlighterSmall);
+        canvas = new Canvas(highlightWhite);
         canvas.drawColor(0, PorterDuff.Mode.CLEAR);
-        canvas.drawBitmap(backLightSmall,
-                -offsetXY[0] + offsetXYSmall[0],
-                -offsetXY[1] + offsetXYSmall[1], ptAlphaColor);
+        canvas.drawBitmap(backLight, 0, 0, ptAlphaColor);
 
         canvas = new Canvas(iconOut);
         canvas.drawColor(0, PorterDuff.Mode.CLEAR);
@@ -288,8 +314,8 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         backLight.recycle();
 
         icons.add(iconOut);
-        icons.add(highlighterSmall);
-        icons.add(highlighter);
+        icons.add(highlightWhite);
+        icons.add(highlightYellow);
 
         return icons;
     }

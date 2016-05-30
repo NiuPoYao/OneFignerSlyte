@@ -18,6 +18,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,9 +31,10 @@ public class AppChooserFragment extends Fragment {
 
     private String LOG_TAG = "AppChooserFragment";
 
+    private int mCandidateNum=0;
+
     private FloatingActionButton mConfirmFab;
     private OnFragmentInteractionListener mListener;
-
 
     private Context mContext;
     private PackageManager mPm;
@@ -42,6 +44,14 @@ public class AppChooserFragment extends Fragment {
         // Required empty public constructor
     }
 
+
+    public void setLaunchableAppsRI(ArrayList<ResolveInfo> list){
+        this.mLaunchableAppsRI = list;
+    }
+
+    public void setCandidateNum(int cn){
+        this.mCandidateNum = cn;
+    }
 
     @Override
     public void onAttach(Context context) {
@@ -61,11 +71,11 @@ public class AppChooserFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_app_chooser, container, false);
+
         GridView appList = (GridView) rootView.findViewById(R.id.app_chooser_grid_list);
 
         Intent i = new Intent(Intent.ACTION_MAIN, null);
         i.addCategory(Intent.CATEGORY_LAUNCHER);
-        mLaunchableAppsRI = mPm.queryIntentActivities(i, 0);
 
         appList.setAdapter(new appAdapter(mContext, mLaunchableAppsRI));
 
@@ -129,7 +139,7 @@ public class AppChooserFragment extends Fragment {
 
             if (convertView == null) {
                 LayoutInflater inflater = LayoutInflater.from(mContext);
-                convertView = inflater.inflate(R.layout.app_list, null);
+                convertView = inflater.inflate(R.layout.element_app_list, null);
 
             }
 
