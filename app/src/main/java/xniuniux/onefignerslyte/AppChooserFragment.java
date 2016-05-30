@@ -23,6 +23,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A fragment with a Google +1 button.
@@ -85,7 +86,7 @@ public class AppChooserFragment extends Fragment {
             superfluous.setTag(pos);
             superfluous.setImageBitmap(app.icons.get(0));
             superfluous.setVisibility(View.VISIBLE);
-            addToCandidates(superfluous,0);
+            addToCandidates(superfluous,0,i);
 
         }
 
@@ -112,7 +113,7 @@ public class AppChooserFragment extends Fragment {
         public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
             Log.d(LOG_TAG,"item selected");
             ImageView button = (ImageView) view.findViewById(R.id.app_list_image);
-            addToCandidates(button, 1);
+            addToCandidates(button, 1,1);
 
         }
 
@@ -125,17 +126,33 @@ public class AppChooserFragment extends Fragment {
     private AdapterView.OnItemClickListener mAppClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
-            Log.d(LOG_TAG,"item clicked" + mLaunchableAppsRI.get((int) view.getTag()).loadLabel(mPm));
-            adapterView.setSelection(pos);
-            //view.setSelected(!view.isSelected());
+            GridView gv = (GridView) adapterView;
+            Log.d(LOG_TAG,"item clicked tag: " + mLaunchableAppsRI.get((int) view.getTag()).loadLabel(mPm) + ", pos: " + pos);
+            Log.d(LOG_TAG,"item checked: " + gv.isItemChecked(pos));
+
+            if (gv.isItemChecked(pos) && mCandidates.size() < mVacancies.size()){
+                mCandidates.add(pos);
+                ImageView iv = (ImageView) LayoutInflater.from(mContext).inflate(R.layout.element_app_shortcut,null);
+                iv.setImageDrawable(((ImageView) view.findViewById(R.id.app_list_image)) .getDrawable());
+                iv.setVisibility(View.VISIBLE);
+                addToCandidates(iv,1,mCandidates.size()-1);
+            } else {
+                int col = mCandidates.indexOf(pos);
+                removeCandidates(1,col);
+            }
         }
     };
 
-    public void addToCandidates(ImageView view, int row){
+    public void addToCandidates(ImageView view, int row, int col){
+        Log.d(LOG_TAG,"add to candidate: " + view.toString());
 
         mCandidatesLayout.addView(view, new GridLayout.LayoutParams(
-                GridLayout.spec(0),
-                GridLayout.spec(row)));
+                GridLayout.spec(row),
+                GridLayout.spec(col)));
+    }
+
+    public void removeCandidates(int row, int col){
+        Log.d(LOG_TAG,"remove candidate: " + row + ", " + col);
     }
 
     @Override
