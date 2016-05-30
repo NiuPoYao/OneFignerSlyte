@@ -4,8 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -14,13 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.google.android.gms.nearby.connection.Strategy;
-import com.google.android.gms.plus.PlusOneButton;
-import com.google.android.gms.vision.text.Text;
 
 import java.util.List;
 
@@ -35,8 +31,12 @@ public class AppChooserFragment extends Fragment {
     private String LOG_TAG = "AppChooserFragment";
 
     private FloatingActionButton mConfirmFab;
-
     private OnFragmentInteractionListener mListener;
+
+
+    private Context mContext;
+    private PackageManager mPm;
+    private List<ResolveInfo> mLaunchableAppsRI;
 
     public AppChooserFragment() {
         // Required empty public constructor
@@ -44,21 +44,32 @@ public class AppChooserFragment extends Fragment {
 
 
     @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        mContext = context;
+        mPm = context.getPackageManager();
+        if (context instanceof OnFragmentInteractionListener) {
+            mListener = (OnFragmentInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_app_chooser, container, false);
 
-        GridView appList = (GridView) view.findViewById(R.id.app_chooser_grid_list);
+        View rootView = inflater.inflate(R.layout.fragment_app_chooser, container, false);
+        GridView appList = (GridView) rootView.findViewById(R.id.app_chooser_grid_list);
 
-        PackageManager pm = getActivity().getPackageManager();
         Intent i = new Intent(Intent.ACTION_MAIN, null);
         i.addCategory(Intent.CATEGORY_LAUNCHER);
-        List<ResolveInfo> launchableApps = pm.queryIntentActivities(i, 0);
+        mLaunchableAppsRI = mPm.queryIntentActivities(i, 0);
 
-        appList.setAdapter(new appAdapter(getContext(), launchableApps));
+        appList.setAdapter(new appAdapter(mContext, mLaunchableAppsRI));
 
-        mConfirmFab = (FloatingActionButton) view.findViewById(R.id.fab_confirm);
+        mConfirmFab = (FloatingActionButton) rootView.findViewById(R.id.fab_confirm);
         mConfirmFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,7 +77,7 @@ public class AppChooserFragment extends Fragment {
             }
         });
 
-        return view;
+        return rootView;
     }
 
     @Override
@@ -82,27 +93,11 @@ public class AppChooserFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
     }
 
-
-    static class ViewHolder {
-        ImageView ivIcon;
-        TextView tvName;
-    }
 
     public class appAdapter extends BaseAdapter{
         private Context mContext;
@@ -129,30 +124,49 @@ public class AppChooserFragment extends Fragment {
         // create a new ImageView for each item referenced by the Adapter
         public View getView(int position, View convertView, ViewGroup parent) {
 
-            //int width = parent.getWidth()/5;
             ImageView button;
             TextView textView;
 
             if (convertView == null) {
-                // if it's not recycled, initialize some attributes
                 LayoutInflater inflater = LayoutInflater.from(mContext);
                 convertView = inflater.inflate(R.layout.app_list, null);
-                //convertView.setLayoutParams(new GridView.LayoutParams(width,width));
 
             }
 
-            button = (ImageView) convertView.findViewById(R.id.app_list_imagebutton);
+            button = (ImageView) convertView.findViewById(R.id.app_list_image);
             textView = (TextView) convertView.findViewById(R.id.app_list_text);
 
-            button.setImageBitmap( ((BitmapDrawable) mRIs.get(position).
-                    activityInfo.loadIcon(mContext.getPackageManager())).getBitmap() );
-            textView.setText(mRIs.get(position).loadLabel(mContext.getPackageManager()));
+            new getItem().execute(button, textView, mRIs.get(position));
+
             convertView.setTag(position);
 
             return convertView;
         }
 
 
+    }
+
+    public class getItem extends AsyncTask<Object, Void, Drawable>{
+
+        private ImageView button;
+        private TextView textView;
+        private ResolveInfo ri;
+
+        @Override
+        protected Drawable doInBackground(final Object... param){
+            button  = (ImageView) param[0];
+            textView = (TextView) param[1];
+            ri = (ResolveInfo) param[2];
+            return ri.loadIcon(mPm);
+
+        }
+
+        @Override
+        protected void onPostExecute(Drawable icon){
+            super.onPostExecute(icon);
+            button.setImageDrawable(icon);
+            textView.setText(ri.loadLabel(mPm));
+        }
     }
     /**
      * This interface must be implemented by activities that contain this

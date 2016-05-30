@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         }
 
         //TODO: do this in background? AsyncTask?
-
+        
         if (appArrayList==null || appArrayList.size()<24){
             Log.d(LOG_TAG,"retrieving app data");
             Intent i = new Intent(Intent.ACTION_MAIN, null);
