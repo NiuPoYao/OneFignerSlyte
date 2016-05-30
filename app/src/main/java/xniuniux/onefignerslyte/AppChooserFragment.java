@@ -83,6 +83,7 @@ public class AppChooserFragment extends Fragment {
             MainActivity.AppShortInfo app = MainActivity.appList.get(pos);
             superfluous.setTag(pos);
             superfluous.setImageBitmap(app.icons.get(0));
+            superfluous.setVisibility(View.VISIBLE);
             addToCandidates(superfluous,1);
 
         }
