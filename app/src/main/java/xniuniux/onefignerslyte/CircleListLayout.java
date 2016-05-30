@@ -11,6 +11,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 /**
@@ -22,11 +24,12 @@ public class CircleListLayout extends ViewGroup {
     private GestureDetector gestureDetector = null;
 
     /** constant **/
-    public int layerSelected = 0;
-    public final int layerTotal = 3;
+    public int mLayerSelected = 0;
+    public final int mLayerTotal = 3;
+    public int mAppsPerLayer = 8;
 
     /** for layout **/
-    private double mDeltaAngle = Math.PI/4;
+    private double mDeltaAngle = Math.PI/mAppsPerLayer*2;
     private float mRadius;
     private float mCurrentAngle = 0;
     private int mOriginVertical, mOriginHorizontal;
@@ -70,53 +73,38 @@ public class CircleListLayout extends ViewGroup {
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         int length = Math.min(widthSize, heightSize);
-        Log.d(LOG_TAG, "length " + length);
-        int childCount = getChildCount();
-        for (int i=0; i<childCount; i++) {
-            View child = getChildAt(i);
-            if (child.getVisibility() == View.GONE) {
-                continue;
-            }
-            measureChildren(MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST),
-                    MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST));
-        }
 
         mRadius = length * 0.35f;
         mOriginVertical = Math.round(length/2);
         mOriginHorizontal = Math.round(length/2);
-        maxChildWidth = (int) Math.round( mRadius * Math.sin(mDeltaAngle) );
+        maxChildWidth = (int) Math.round( mRadius * 0.8 * Math.sin(mDeltaAngle) );
+
+        measureChildren(MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST),
+                MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST));
+
+        int childCount = getChildCount();
+        for (int i=0; i<childCount; i++) {
+            View child = getChildAt(i);
+            Log.d(LOG_TAG,"view " + i + " " + child.toString());
+            int thisChildWidth = maxChildWidth;
+            int thisChildHeight = maxChildWidth;
+            Log.d(LOG_TAG+" onMeasure ", "" + child.getMeasuredWidth() + " " + child.getMeasuredHeight());
+
+            thisChildWidth /= i / mAppsPerLayer + 1;
+            thisChildHeight /= i / mAppsPerLayer + 1;
+            child.measure(MeasureSpec.makeMeasureSpec(thisChildWidth, MeasureSpec.EXACTLY),
+                          MeasureSpec.makeMeasureSpec(thisChildHeight, MeasureSpec.EXACTLY));
+
+            Log.d(LOG_TAG+" onMeasure ", "" + child.getMeasuredWidth() + " " + child.getMeasuredHeight());
+        }
+
         setMeasuredDimension(length, length);
     }
 
     @Override
     protected void onLayout(boolean change, int l, int t, int r, int b){
 
-        Log.d(LOG_TAG, "onLayout");
-        int cx = (r - l)/2;
-        int cy = (b - t)/2;
-        int childL, childT;
-
-        int childCount = getChildCount();
-        for (int i=0; i<childCount; i++){
-            View child = getChildAt(i);
-
-            if (child.getVisibility() == View.GONE) { continue; }
-
-            int thisChildWidth = child.getMeasuredWidth();
-            int thisChildHeight = child.getMeasuredHeight();
-
-            if (thisChildWidth > maxChildWidth) {
-                float ratio = thisChildHeight / thisChildWidth;
-                thisChildWidth = maxChildWidth;
-                thisChildHeight = Math.round(maxChildWidth * ratio);
-            }
-
-            childL = cx + (int) Math.round(mRadius * Math.cos(mCurrentAngle + mDeltaAngle * ( 1 + i % 8) ) - thisChildWidth/2);
-            childT = cy + (int) Math.round(mRadius * Math.sin(mCurrentAngle + mDeltaAngle * ( 1 + i % 8) ) - thisChildHeight/2);
-
-            child.layout(childL, childT, childL + thisChildWidth, childT + thisChildHeight);
-            child.setLongClickable(true);
-        }
+        setListByAngle(mCurrentAngle);
     }
 
     public void rotateListByAngleAnimator(float angle, long duration){
@@ -139,9 +127,9 @@ public class CircleListLayout extends ViewGroup {
                 float x = e1.getX() - mOriginVertical;
                 float y = e1.getY() - mOriginHorizontal;
                 if (x*vX<0 || y*vY<0){
-                    layerSelected = switchLayer(-1);
+                    switchLayer(-1);
                 } else {
-                    layerSelected = switchLayer(1);
+                    switchLayer(1);
                 }
 
             } else {
@@ -241,19 +229,18 @@ public class CircleListLayout extends ViewGroup {
     public void setListByAngle(float angle){
 
         int childCount = getChildCount();
-        int childL;
-        int childT;
+        int childL, childT;
 
         for (int i=0; i<childCount; i++){
 
             View child = getChildAt(i);
-            int thisChildWidth = child.getWidth();
-            int thisChildHeight = child.getHeight();
+            int thisChildWidth = child.getMeasuredWidth();
+            int thisChildHeight = child.getMeasuredHeight();
 
             if (child.getVisibility() == View.GONE) { continue; }
 
-            childL = mOriginVertical + (int) Math.round(mRadius * Math.cos(angle + mDeltaAngle * ( 1 + i % 8) ) - thisChildWidth/2);
-            childT = mOriginHorizontal + (int) Math.round(mRadius * Math.sin(angle + mDeltaAngle * ( 1 + i % 8) ) - thisChildHeight/2);
+            childL = mOriginVertical + (int) Math.round(mRadius / ((i/mAppsPerLayer)*0.7f + 1) * Math.cos(angle + mDeltaAngle * ( 1 + i % 8) ) - thisChildWidth/2);
+            childT = mOriginHorizontal + (int) Math.round(mRadius / ((i/mAppsPerLayer)*0.7f + 1) * Math.sin(angle + mDeltaAngle * ( 1 + i % 8) ) - thisChildHeight/2);
 
             child.layout(childL, childT, childL + thisChildWidth, childT + thisChildHeight);
         }
@@ -268,12 +255,11 @@ public class CircleListLayout extends ViewGroup {
         mStartAngle = null;
     }
 
-    public int switchLayer(int i){
-        int layer = (layerSelected + i + layerTotal) % layerTotal;
-        Toast.makeText(getContext(), "Layer add " + i + " to " + layer,
+    public void switchLayer(int i){
+        mLayerSelected = (mLayerSelected + i + mLayerTotal) % mLayerTotal;
+        Toast.makeText(getContext(), "Layer add " + i + " to " + mLayerSelected,
                 Toast.LENGTH_SHORT).show();
         mSwitchLayer = null;
-        return layer;
     }
 
     public void moveButton(View view, float dx, float dy){
@@ -291,4 +277,7 @@ public class CircleListLayout extends ViewGroup {
         mRotateEnable = isEnable;
     }
 
+    public int getAppShortcutsNum(){
+        return mLayerTotal * mAppsPerLayer;
+    }
 }

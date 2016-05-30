@@ -7,6 +7,7 @@ import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,21 +21,19 @@ import android.view.ViewTreeObserver;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 
 import xniuniux.onefignerslyte.MainActivity.AppShortInfo;
 
-/**
- * A simple {@link Fragment} subclass.
- */
 public class AppShortcutFragment extends Fragment {
 
     String LOG_TAG = "AppShortcutFragment";
-    public FragmentSuicideListener suicideListener;
+    public OnFragmentInteractionListener interactionListener;
     public CircleListLayout cLayout;
-    public ArrayList<AppShortInfo> appArrayList;
 
 
     public AppShortcutFragment() {
@@ -45,13 +44,13 @@ public class AppShortcutFragment extends Fragment {
         super.onAttach(context);
         if (context instanceof Activity){
             Activity a =(Activity) context;
-            suicideListener = (FragmentSuicideListener) a;
+            interactionListener = (OnFragmentInteractionListener) a;
 
         }
     }
 
     public void setAppList(ArrayList<AppShortInfo> list ){
-        this.appArrayList = list;
+        MainActivity.appArrayList = list;
     }
 
     @Override
@@ -61,19 +60,31 @@ public class AppShortcutFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_app_shortcut, container, false);
         cLayout = (CircleListLayout) rootView.findViewById(R.id.circle_list_layout);
 
-        for (int i = 0; i < cLayout.getChildCount(); i++){
-            ImageButton button = (ImageButton) cLayout.getChildAt(i);
-            AppShortInfo app = appArrayList.get(i);
-            app.layoutId = button.getId();
+        for (int i = 0; i < cLayout.getAppShortcutsNum(); i++){
+            ImageButton button = new ImageButton(getContext());
+            AppShortInfo app = MainActivity.appArrayList.get(i);
+            button.setVisibility(View.INVISIBLE);
+            button.setTag(i);
+            button.setPadding(0,0,0,0);
             button.setImageBitmap(app.icons.get(0));
-            button.setSelected(true);
+            button.setScaleType(ImageView.ScaleType.CENTER);
+            button.setAdjustViewBounds(true);
+            button.setBackgroundColor(0x00000000);
+            if (i<cLayout.mAppsPerLayer){
+                button.setImageAlpha(180);
+            } else {
+                button.setImageAlpha(64);
+            }
             button.setOnClickListener(onClickListener);
             button.setOnLongClickListener(onLongClickListener);
             button.setOnTouchListener(onTouchListener);
+            cLayout.addView(button);
         }
         return rootView;
 
     }
+
+
 
     @Override
     public void onStart(){
@@ -92,7 +103,7 @@ public class AppShortcutFragment extends Fragment {
                 final float startX = CLayout.getWidth()/2;
                 final float startY = CLayout.getHeight()/2;
                 for ( int i = 0; i < CLayout.getChildCount(); i++ ){
-                    final View child = CLayout.getChildAt(i);
+                    final ImageButton child = (ImageButton) CLayout.getChildAt(i);
                     handler.postDelayed(
                             new Runnable() {
                                 @Override
@@ -109,7 +120,7 @@ public class AppShortcutFragment extends Fragment {
                                     anima.setDuration(200);
                                     anima.start();
                                 }
-                            }, i*100);
+                            }, i*80);
                 }
             }
         });
@@ -125,7 +136,7 @@ public class AppShortcutFragment extends Fragment {
 
             @Override
             public void onAnimationEnd(Animator animator) {
-                suicideListener.onFragmentSuicide("appList");
+                interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_KILL);
             }
 
             @Override
@@ -160,16 +171,12 @@ public class AppShortcutFragment extends Fragment {
     public View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            int id = view.getId();
-            Toast.makeText(getContext(), "click " + view.toString(),
+            Toast.makeText(getContext(), "click " + view.getTransitionName(),
                     Toast.LENGTH_SHORT).show();
             Log.d(LOG_TAG,"onClick");
-            /*for (AppShortInfo app: appArrayList){
-                if(app.layoutId == id){
-                    Intent i = packageManager.getLaunchIntentForPackage(app.name.toString());
-                    AppShortcutFragment.this.startActivity(i);
-                }
-            }*/
+            AppShortInfo app = MainActivity.appArrayList.get((int) view.getTag());
+            Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
+            AppShortcutFragment.this.startActivity(i);
 
         }
     };
@@ -177,15 +184,10 @@ public class AppShortcutFragment extends Fragment {
     public View.OnLongClickListener onLongClickListener = new View.OnLongClickListener(){
         @Override
         public boolean onLongClick(View view){
-            Toast.makeText(getContext(), "long click " + view.toString(),
-                    Toast.LENGTH_SHORT).show();
             cLayout.setRotateEnable(false);
-            int id = view.getId();
-            for (MainActivity.AppShortInfo app : appArrayList) {
-                if (app.layoutId == id) {
-                    view.setBackground(new BitmapDrawable(getResources(), app.icons.get(2)));
-                }
-            }
+            interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_LAUNCH_APPCHOOSER);
+            //view.setBackground(new BitmapDrawable(getResources(), MainActivity.appArrayList.get((int) view.getTag()).icons.get(2)));
+
             Log.d(LOG_TAG,"onLongClick");
             return  true;
         }
@@ -203,12 +205,7 @@ public class AppShortcutFragment extends Fragment {
             if (action == MotionEvent.ACTION_DOWN) {
                 moveFromX = ev.getX();
                 moveFromY = ev.getY();
-                int id = view.getId();
-                for (MainActivity.AppShortInfo app : appArrayList) {
-                    if (app.layoutId == id) {
-                        button.setBackground(new BitmapDrawable(getResources(), app.icons.get(1)));
-                    }
-                }
+                view.setBackground(new BitmapDrawable(getResources(), MainActivity.appArrayList.get((int) view.getTag()).icons.get(1)));
                 consume = false;
             }
 
@@ -221,13 +218,8 @@ public class AppShortcutFragment extends Fragment {
             }
 
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                int id = view.getId();
                 cLayout.setRotateEnable(true);
-                for (MainActivity.AppShortInfo app : appArrayList) {
-                    if (app.layoutId == id) {
-                        button.setBackgroundColor(0x00000000);
-                    }
-                }
+                button.setBackgroundColor(0x00000000);
                 consume = false;
             }
             Log.d(LOG_TAG, "view onTouch return: " + consume + ev.toString());
@@ -235,6 +227,11 @@ public class AppShortcutFragment extends Fragment {
         }
     };
 
+
+    public interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        void onFragmentInteraction(String TAG, int ACTION);
+    }
 
 }
 

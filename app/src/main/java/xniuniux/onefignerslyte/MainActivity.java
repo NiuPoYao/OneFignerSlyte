@@ -21,6 +21,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,19 +33,26 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements FragmentSuicideListener{
+public class MainActivity extends AppCompatActivity implements AppShortcutFragment.OnFragmentInteractionListener,
+        AppChooserFragment.OnFragmentInteractionListener {
 
     private String LOG_TAG = "Main Activity";
+
+    /** Used for interaction with child fragments*/
+    public static final int FRG_ACTION_KILL = -1;
+    public static final int FRG_ACTION_LAUNCH_APPCHOOSER = 1;
+    public static final int FRG_ACTION_CONFIRM= 2;
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
     private AppShortcutFragment mAppShortcutFragment = new AppShortcutFragment();
+    private AppChooserFragment mAppChooserFragment;
     public boolean isAppListShow = false;
     public PackageManager packageManager;
+
     public static ArrayList<AppShortInfo> appArrayList;
 
     public class AppShortInfo {
-        int layoutId;
         CharSequence name;
         ArrayList<Bitmap> icons;
     }
@@ -55,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements FragmentSuicideLi
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.fab_rb);
         FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab_lb);
 
@@ -68,10 +76,10 @@ public class MainActivity extends AppCompatActivity implements FragmentSuicideLi
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        //setSupportActionBar(toolbar);
+        setSupportActionBar(toolbar);
 
         if (fab1 != null) {
-            fab1.setOnClickListener(fab1Onclick);
+            fab1.setOnClickListener(fab_1_OnclickListener);
         }
 
         if (fab2 != null) {
@@ -91,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements FragmentSuicideLi
 
         //TODO: do this in background? AsyncTask?
 
-        if (appArrayList==null || appArrayList.size()<8){
+        if (appArrayList==null || appArrayList.size()<24){
             Log.d(LOG_TAG,"retrieving app data");
             Intent i = new Intent(Intent.ACTION_MAIN, null);
             i.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -108,13 +116,32 @@ public class MainActivity extends AppCompatActivity implements FragmentSuicideLi
         mAppShortcutFragment.setAppList(appArrayList);
     }
 
+
+
     @Override
-    public void  onFragmentSuicide(String tag) {
+    public void onFragmentInteraction(String tag, int action) {
         FragmentManager fm = getSupportFragmentManager();
-        switch (tag) {
-            case "appList":
-                fm.beginTransaction().remove(mAppShortcutFragment).commit();
+        switch (tag){
+            case "AppShortcutFragment":
+                if (action == FRG_ACTION_KILL){
+                    fm.beginTransaction().remove(mAppShortcutFragment).commit();
+                    break;
+                }
+                if (action == FRG_ACTION_LAUNCH_APPCHOOSER){
+                    mAppChooserFragment = new AppChooserFragment();
+                    fm.beginTransaction().replace(R.id.main_content, mAppChooserFragment).addToBackStack(null).commit();
+                    break;
+                }
+            case "AppChooserFragment":
+                if (action == FRG_ACTION_CONFIRM){
+                    fm.popBackStack();
+                    break;
+                }
         }
+
+        Log.d(LOG_TAG, "fragment send:" + tag);
+
+
     }
 
     @Override
@@ -127,20 +154,19 @@ public class MainActivity extends AppCompatActivity implements FragmentSuicideLi
         super.onPause();
     }
 
-    private View.OnClickListener fab1Onclick = new View.OnClickListener() {
+    private View.OnClickListener fab_1_OnclickListener = new View.OnClickListener() {
 
         @Override
         public void onClick(View view) {
             FragmentManager fm = getSupportFragmentManager();
             if (!isAppListShow) {
-                if (mAppShortcutFragment.isAdded()){
+                if (!mAppShortcutFragment.isAdded()){
+                    fm.beginTransaction()
+                            .add(R.id.main_content, mAppShortcutFragment)
+                            .commit();
                     isAppListShow = true;
                     return;
                 }
-                fm.beginTransaction()
-                        .add(R.id.main_content, mAppShortcutFragment)
-                        .commit();
-                isAppListShow = true;
             } else {
                 mAppShortcutFragment.hideList();
                 isAppListShow = false;
@@ -222,6 +248,8 @@ public class MainActivity extends AppCompatActivity implements FragmentSuicideLi
 
     public ArrayList<Bitmap> highlightImage(Bitmap icon) {
 
+        Log.d(LOG_TAG, "Draw:" + icon.getWidth() + " " + icon.getHeight());
+
         ArrayList<Bitmap> icons = new ArrayList<>();
         Paint ptBlur = new Paint();
 
@@ -265,6 +293,11 @@ public class MainActivity extends AppCompatActivity implements FragmentSuicideLi
 
         return icons;
     }
+
+    public void changeAppShortcutList(){
+
+    }
+
 
 }
 
