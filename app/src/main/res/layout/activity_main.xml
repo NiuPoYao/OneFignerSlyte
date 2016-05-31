@@ -39,24 +39,11 @@
 
     </android.support.v4.view.ViewPager>
 
-
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_rb"
+    <include layout="@layout/element_fab"
+        android:id="@+id/main_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_dialog_email" />
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_lb"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start|bottom"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_dialog_info" />
-
-
+        />
 
 </android.support.design.widget.CoordinatorLayout>

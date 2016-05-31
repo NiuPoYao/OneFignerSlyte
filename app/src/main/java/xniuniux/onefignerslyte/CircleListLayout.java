@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
@@ -76,7 +75,6 @@ public class CircleListLayout extends ViewGroup {
         mOriginVertical = Math.round(length/2);
         mOriginHorizontal = Math.round(length/2);
         maxChildWidth = (int) Math.round( mRadius * 0.8 * Math.sin(mDeltaAngle) );
-        Log.d(LOG_TAG+" onMeasure ", "" + maxChildWidth);
         measureChildren(MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST),
                 MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST));
 
@@ -84,16 +82,10 @@ public class CircleListLayout extends ViewGroup {
         for (int i=0; i<childCount; i++) {
             View child = getChildAt(i);
             int thisChildWidth = maxChildWidth;
-            int thisChildHeight = maxChildWidth;
-            Log.d(LOG_TAG+" onMeasure ", child.getMeasuredWidth() + " " + child.getMeasuredHeight());
-
             thisChildWidth /= i / mAppsPerLayer + 1;
-            thisChildHeight /= i / mAppsPerLayer + 1;
-            Log.d(LOG_TAG+" onMeasure ", thisChildWidth + " " + thisChildHeight);
-            child.measure(MeasureSpec.makeMeasureSpec(thisChildWidth, MeasureSpec.EXACTLY),
-                          MeasureSpec.makeMeasureSpec(thisChildHeight, MeasureSpec.EXACTLY));
 
-            Log.d(LOG_TAG+" onMeasure ", "" + child.getMeasuredWidth() + " " + child.getMeasuredHeight());
+            child.measure(MeasureSpec.makeMeasureSpec(thisChildWidth, MeasureSpec.EXACTLY),
+                          MeasureSpec.makeMeasureSpec(thisChildWidth, MeasureSpec.EXACTLY));
         }
 
         setMeasuredDimension(length, length);
@@ -101,7 +93,6 @@ public class CircleListLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean change, int l, int t, int r, int b){
-
         setListByAngle(mCurrentAngle);
     }
 
@@ -116,7 +107,7 @@ public class CircleListLayout extends ViewGroup {
     }
 
     private class gListener extends SimpleOnGestureListener{
-        String DEBUG_TAG = "gesture";
+        String LOG_TAG = "gesture";
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float vX, float vY){
@@ -131,7 +122,6 @@ public class CircleListLayout extends ViewGroup {
                 }
 
             } else {
-                Log.d(DEBUG_TAG, "onFling: " + e1.toString() + e2.toString());
                 float x = e2.getX() - mOriginVertical;
                 float y = e2.getY() - mOriginHorizontal;
                 float radius = (float) Math.sqrt(x * x + y * y);
@@ -152,7 +142,6 @@ public class CircleListLayout extends ViewGroup {
         public boolean onDown(MotionEvent ev) {
             stopRotateAnimator();
             mStartAngle = (float) Math.atan2( ev.getY() - mOriginVertical, ev.getX() - mOriginVertical);
-            Log.d(DEBUG_TAG,"onDown: " + ev.toString());
             return true;
         }
 
@@ -163,12 +152,10 @@ public class CircleListLayout extends ViewGroup {
             if (mSwitchLayer == null){
                 if (Math.abs(endY*dX - dY*endX)< (Math.abs(endX)+Math.abs(endY))*20){
                 mSwitchLayer = true;
-                Log.d(DEBUG_TAG, "onScroll switch: " + e1.toString() +e2.toString());
                 } else { mSwitchLayer = false; }
             }
             if (!mSwitchLayer){
                 float endAngle = (float) Math.atan2(endY, endX);
-                Log.d(DEBUG_TAG, "onScroll rotate: " + mStartAngle + " to " + endAngle + e2.toString());
                 setMCurrentAngle(endAngle - mStartAngle + mCurrentAngle);
                 mStartAngle = endAngle;
             }
@@ -208,7 +195,6 @@ public class CircleListLayout extends ViewGroup {
             intercept = this.gestureDetector.onTouchEvent(ev);
         }
 
-        Log.d(LOG_TAG, "return " + intercept + " " + ev.toString());
         return intercept;
     }
 
@@ -220,7 +206,6 @@ public class CircleListLayout extends ViewGroup {
         if (action != MotionEvent.ACTION_DOWN){
             consume = this.gestureDetector.onTouchEvent(ev);
         }
-        Log.d(LOG_TAG, "return " + consume + " " + ev.toString());
         return consume;
     }
 

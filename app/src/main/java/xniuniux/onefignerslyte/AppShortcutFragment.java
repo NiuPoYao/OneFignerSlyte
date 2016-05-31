@@ -21,7 +21,6 @@ import android.view.ViewTreeObserver;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -64,7 +63,7 @@ public class AppShortcutFragment extends Fragment {
             ImageView button = (ImageView) inflater.inflate(R.layout.element_app_shortcut, null);
             AppShortInfo app = MainActivity.appList.get(i);
             button.setTag(i);
-            button.setImageBitmap(app.icons.get(0));
+            button.setImageBitmap(app.icons.get(1));
             if (i<cLayout.mAppsPerLayer){
                 button.setImageAlpha(180);
             } else {
@@ -167,9 +166,6 @@ public class AppShortcutFragment extends Fragment {
     public View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            Toast.makeText(getContext(), "click " + view.getTransitionName(),
-                    Toast.LENGTH_SHORT).show();
-            Log.d(LOG_TAG,"onClick");
             AppShortInfo app = MainActivity.appList.get((int) view.getTag());
             Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
             AppShortcutFragment.this.startActivity(i);
@@ -182,9 +178,7 @@ public class AppShortcutFragment extends Fragment {
         public boolean onLongClick(View view){
             cLayout.setRotateEnable(false);
             interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_CHANGE_SHORTCUT);
-            //view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(2)));
-
-            Log.d(LOG_TAG,"onLongClick");
+            //view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(3)));
             return  true;
         }
     };
@@ -201,7 +195,7 @@ public class AppShortcutFragment extends Fragment {
             if (action == MotionEvent.ACTION_DOWN) {
                 moveFromX = ev.getX();
                 moveFromY = ev.getY();
-                view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(1)));
+                view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(2)));
                 consume = false;
             }
 
@@ -209,8 +203,6 @@ public class AppShortcutFragment extends Fragment {
                 float moveToX = ev.getX();
                 float moveToY = ev.getY();
                 cLayout.moveButton(view, moveToX-moveFromX, moveToY-moveFromY);
-                Log.d(LOG_TAG, "Drag from " + moveFromX + " to " +
-                        moveToX + ", " + view.getWidth());
             }
 
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
@@ -218,7 +210,6 @@ public class AppShortcutFragment extends Fragment {
                 button.setBackgroundColor(0x00000000);
                 consume = false;
             }
-            Log.d(LOG_TAG, "view onTouch return: " + consume + ev.toString());
             return consume;
         }
     };

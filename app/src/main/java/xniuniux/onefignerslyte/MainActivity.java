@@ -14,7 +14,6 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -29,7 +28,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,8 +66,7 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        FloatingActionButton fab1 = (FloatingActionButton) findViewById(R.id.fab_rb);
-        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab_lb);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.main_fab);
 
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
         Drawable wallpaperDrawable = wallpaperManager.getDrawable();
@@ -82,34 +79,39 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
 
         setSupportActionBar(toolbar);
 
-        if (fab1 != null) {
-            fab1.setOnClickListener(fab_1_OnclickListener);
-        }
-
-        if (fab2 != null) {
-            fab2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    int current = mViewPager.getCurrentItem();
-                    Snackbar.make(view, "Now is on page " + current, Snackbar.LENGTH_LONG).show();
-                    Toast.makeText(getApplicationContext(), "Now is on page " + current,
-                            Toast.LENGTH_SHORT).show();
-                    /*Intent i = new Intent();
-                    i.setClass(MainActivity.this, AllAppListActivity.class);
-                    startActivity(i);*/
-                }
-            });
+        if (fab != null) {
+            fab.setOnClickListener(fabOnclickListener);
         }
 
         Intent i = new Intent(Intent.ACTION_MAIN, null);
         i.addCategory(Intent.CATEGORY_LAUNCHER);
         mPm = getPackageManager();
         mLaunchableApps = (ArrayList<ResolveInfo>) mPm.queryIntentActivities(i, 0);
-        Collections.sort(mLaunchableApps, new Comparator<ResolveInfo>(){
+
+        mLaunchableApps = sortRIsByLabel(mLaunchableApps, mPm);
+
+        setAppList(null);
+
+    }
+
+    public ArrayList<ResolveInfo> sortRIsByLabel(ArrayList<ResolveInfo> RIs, PackageManager pm){
+        final PackageManager fPm = pm;
+        Collections.sort(RIs, new Comparator<ResolveInfo>(){
             public int compare(ResolveInfo emp1, ResolveInfo emp2) {
-                return emp1.loadLabel(mPm).toString().compareToIgnoreCase(emp2.loadLabel(mPm).toString());
+                return emp1.loadLabel(fPm).toString().compareToIgnoreCase(emp2.loadLabel(fPm).toString());
             }
         });
+
+        return RIs;
+    }
+
+    public void setAppList(int pos, ResolveInfo RI){
+        AppShortInfo app = appList.get(pos);
+        app.name = RI.activityInfo.packageName;
+        new getIconSet().execute(app, RI);
+    }
+
+    public void setAppList(ArrayList<Integer> list){
 
         if (appList == null || appList.size()<24){
             Log.d(LOG_TAG, "retrieving app data");
@@ -118,16 +120,15 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
             }
             for (ResolveInfo RI : mLaunchableApps){
                 AppShortInfo app = new AppShortInfo();
-                app.name = RI.activityInfo.packageName;
-                new getIconSet().execute(app, RI);
                 appList.add(app);
+                setAppList(appList.size()-1,RI);
                 if (appList.size()>=24){
                     break;
                 }
             }
         }
-    }
 
+    }
 
 
     @Override
@@ -168,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         super.onPause();
     }
 
-    private View.OnClickListener fab_1_OnclickListener = new View.OnClickListener() {
+    private View.OnClickListener fabOnclickListener = new View.OnClickListener() {
 
         @Override
         public void onClick(View view) {
@@ -270,7 +271,6 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         protected Drawable doInBackground(final Object... param){
             appInfo = (AppShortInfo) param[0];
             ri = (ResolveInfo) param[1];
-            Log.d(LOG_TAG, "this is before load icon");
             return ri.loadIcon(mPm);
 
         }
@@ -313,6 +313,7 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
 
         backLight.recycle();
 
+        icons.add(icon);
         icons.add(iconOut);
         icons.add(highlightWhite);
         icons.add(highlightYellow);

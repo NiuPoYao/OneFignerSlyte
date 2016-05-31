@@ -9,16 +9,20 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="@dimen/app_chooser_padding">
+
         <GridLayout
             android:id="@+id/app_chooser_candidate"
             android:columnCount="8"
             android:rowCount="2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="top|end"
-            android:foregroundGravity="center">
-
+            android:layout_gravity="top|start"
+            android:columnOrderPreserved="false"
+            android:layout_margin="@dimen/app_chooser_candidate_margin"
+            android:background="@color/colorWhiteTrans"
+            >
         </GridLayout>
 
         <GridView
@@ -28,19 +32,17 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:minHeight="60dp"
-            android:padding="12dp"
             android:clickable="true"
             android:choiceMode="multipleChoice"
+            android:background="@color/colorPrimary"
             />
 
     </LinearLayout>
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab_confirm"
+    <include layout="@layout/element_fab"
+        android:id="@+id/chooser_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@android:drawable/ic_dialog_info" />
+        android:layout_gravity="bottom|center_horizontal"/>
 
 </FrameLayout>

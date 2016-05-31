@@ -23,7 +23,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A fragment with a Google +1 button.
@@ -96,7 +95,7 @@ public class AppChooserFragment extends Fragment {
         appList.setOnItemSelectedListener(mAppSelectedListener);
         appList.setOnItemClickListener(mAppClickListener);
 
-        mConfirmFab = (FloatingActionButton) rootView.findViewById(R.id.fab_confirm);
+        mConfirmFab = (FloatingActionButton) rootView.findViewById(R.id.chooser_fab);
         mConfirmFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -152,6 +151,7 @@ public class AppChooserFragment extends Fragment {
     }
 
     public void removeCandidates(int row, int col){
+        //mCandidatesLayout.re
         Log.d(LOG_TAG,"remove candidate: " + row + ", " + col);
     }
 
