@@ -54,6 +54,8 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
 
     public static List<AppShortInfo> appList;
 
+
+    //public View.OnClickListener mainFabOnClickListener;
     public class AppShortInfo {
         CharSequence name;
         List<Bitmap> icons;
@@ -80,8 +82,10 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         setSupportActionBar(toolbar);
 
         if (fab != null) {
-            fab.setOnClickListener(fabOnclickListener);
+            fab.setOnClickListener(mainFabOnClickListener);
         }
+
+
 
         Intent i = new Intent(Intent.ACTION_MAIN, null);
         i.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -161,15 +165,15 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
 
     @Override
     public void onPause(){
-        if (isAppListShow){
+        /*if (isAppListShow){
             FragmentManager fm = getSupportFragmentManager();
             fm.beginTransaction().remove(mAppShortcutFragment).commit();
             isAppListShow = false;
-        }
+        }*/
         super.onPause();
     }
 
-    private View.OnClickListener fabOnclickListener = new View.OnClickListener() {
+    private View.OnClickListener mainFabOnClickListener = new View.OnClickListener() {
 
         @Override
         public void onClick(View view) {
@@ -178,6 +182,7 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
                 if (!mAppShortcutFragment.isAdded()){
                     fm.beginTransaction()
                             .add(R.id.main_content, mAppShortcutFragment)
+                            .addToBackStack(null)
                             .commit();
                     isAppListShow = true;
                     return;

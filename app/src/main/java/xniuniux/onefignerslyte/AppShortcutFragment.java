@@ -75,6 +75,7 @@ public class AppShortcutFragment extends Fragment {
             button.setOnTouchListener(onTouchListener);
             cLayout.addView(button);
         }
+        showList();
         return rootView;
 
     }
@@ -84,21 +85,19 @@ public class AppShortcutFragment extends Fragment {
     @Override
     public void onStart(){
         super.onStart();
-        showList();
     }
 
     public void showList(){
-        final CircleListLayout CLayout = cLayout;
-        ViewTreeObserver vto = CLayout.getViewTreeObserver();
+        ViewTreeObserver vto = cLayout.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                CLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                cLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 Handler handler = new Handler();
-                final float startX = CLayout.getWidth()/2;
-                final float startY = CLayout.getHeight()/2;
-                for ( int i = 0; i < CLayout.getChildCount(); i++ ){
-                    final ImageView child = (ImageView) CLayout.getChildAt(i);
+                final float startX = cLayout.getWidth()/2;
+                final float startY = cLayout.getHeight()/2;
+                for ( int i = 0; i < cLayout.getChildCount(); i++ ){
+                    final ImageView child = (ImageView) cLayout.getChildAt(i);
                     handler.postDelayed(
                             new Runnable() {
                                 @Override
@@ -120,6 +119,9 @@ public class AppShortcutFragment extends Fragment {
             }
         });
     }
+
+
+
 
     public void hideList() {
         AnimatorSet animatorSet = new AnimatorSet();
