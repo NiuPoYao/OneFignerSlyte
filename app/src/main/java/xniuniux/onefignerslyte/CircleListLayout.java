@@ -3,8 +3,6 @@ package xniuniux.onefignerslyte;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.animation.PropertyValuesHolder;
-import android.animation.TimeInterpolator;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -13,11 +11,11 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
+
+import com.google.android.gms.location.FusedLocationProviderApi;
 
 import java.util.ArrayList;
 
@@ -40,18 +38,25 @@ public class CircleListLayout extends ViewGroup {
     private float mRadius, mRadiusSecond, mRadiusThird;
     private int mChildWidth, mChildWidthSecond, mChildWidthThird;
     private int mChildAlpha = 192, mChildAlphaSecond = 64, mChildAlphaThird = 64;
+    private float mChildElevate = 2, mChildElevateSecond = 1, mChildElevateThird = 0;
     private float mCurrentAngle = 0;
     private int mOriginVertical, mOriginHorizontal;
 
-    /** for touch rotation event **/
+
+    /** State **/
     private boolean mRotateEnable = true;
+    private boolean mSelectingMode = false; //Selecting Mode blocked the layer switcher
+
+    /** for touch rotation event **/
     private Float mStartAngle = null;
     private Boolean mClockwise = null;
     private Boolean mSwitchLayer = null;
 
     /** animator **/
     private Animator mRotateAnimator;
-    private AnimatorSet mSwitchAnimator = new AnimatorSet();
+    private AnimatorSet mSwitchAnimator;
+
+
 
     public CircleListLayout(Context context) {
         this(context, null);
@@ -71,12 +76,6 @@ public class CircleListLayout extends ViewGroup {
         gestureDetector.setIsLongpressEnabled(false);
     }
 
-    public void setCurrentAngle(float angle){
-        mClockwise = angle > mCurrentAngle;
-        mCurrentAngle = angle;
-        setListLayout();
-    }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
         Log.d(LOG_TAG, "on Measure");
@@ -84,9 +83,9 @@ public class CircleListLayout extends ViewGroup {
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         int length = Math.min(widthSize, heightSize);
 
-        mRadius = length * 0.35f;
-        mRadiusSecond = mRadius * 0.6f;
-        mRadiusThird = mRadius * 0.4f;
+        mRadius = length * 0.3f;
+        mRadiusSecond = mRadius * 0.7f;
+        mRadiusThird = mRadius * 1.3f;
 
         mChildWidth =(int) Math.round( mRadius * 0.8 * Math.sin(mDeltaAngle) );
         mChildWidthSecond = mChildWidth /2;
@@ -95,6 +94,10 @@ public class CircleListLayout extends ViewGroup {
         mChildAlpha = 192;
         mChildAlphaSecond = 64;
         mChildAlphaThird = 64;
+
+        mChildElevate = 2;
+        mChildElevateSecond = 1;
+        mChildElevateThird = 0;
 
         mOriginVertical = Math.round(length/2);
         mOriginHorizontal = Math.round(length/2);
@@ -108,7 +111,44 @@ public class CircleListLayout extends ViewGroup {
     @Override
     protected void onLayout(boolean change, int l, int t, int r, int b){
         Log.d(LOG_TAG,"onLayout");
+        updateButtonsState();
         setListLayout();
+    }
+
+    public void setListLayout(){
+
+        int childCount = getChildCount();
+        int childL, childT;
+
+        for (int i=0; i<childCount; i++){
+            View child = getChildAt((i+ mAppsPerLayer * mLayerSelected)%childCount);
+            if (child.getVisibility() == View.GONE) { continue; }
+            int thisChildWidth;
+            float radius;
+            if (i < mAppsPerLayer){
+                ((ImageView) child).setImageAlpha(mChildAlpha);
+                radius = mRadius;
+                thisChildWidth = mChildWidth;
+                child.setElevation(mChildElevate);
+            }else if (i < mAppsPerLayer*2){
+                ((ImageView) child).setImageAlpha(mChildAlphaSecond);
+                radius = mRadiusSecond;
+                thisChildWidth = mChildWidthSecond;
+                child.setElevation(mChildElevateSecond);
+            }else {
+                ((ImageView) child).setImageAlpha(mChildAlphaThird);
+                radius = mRadiusThird;
+                thisChildWidth = mChildWidthThird;
+                child.setElevation(mChildElevateThird);
+            }
+            child.measure(MeasureSpec.makeMeasureSpec(Math.round(thisChildWidth), MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(Math.round(thisChildWidth), MeasureSpec.EXACTLY));
+
+            childL = mOriginVertical + (int) Math.round(radius * Math.cos(mCurrentAngle + mDeltaAngle * ( 1 + i % 8) ) - thisChildWidth/2);
+            childT = mOriginHorizontal + (int) Math.round(radius * Math.sin(mCurrentAngle + mDeltaAngle * ( 1 + i % 8) ) - thisChildWidth/2);
+
+            child.layout(childL, childT, childL + thisChildWidth, childT + thisChildWidth);
+        }
     }
 
     public void rotateListByAngleAnimator(float angle, long duration){
@@ -122,12 +162,12 @@ public class CircleListLayout extends ViewGroup {
     }
 
     public void switchLayer(int switchInt){
-        if ( mSwitchAnimator != null && mSwitchAnimator.isRunning() ) {
-            return;
-        }
+        if ( mSwitchAnimator != null && mSwitchAnimator.isRunning() ) { return; }
+        if (mSelectingMode){ return; }
 
-        mLayerSelected = (mLayerSelected + switchInt + mLayerTotal) % mLayerTotal;
+        mSwitchAnimator =  new AnimatorSet();
         Animator anima;
+        mLayerSelected = (mLayerSelected + switchInt + mLayerTotal) % mLayerTotal;
 
         ArrayList<Animator> animaList = new ArrayList<>();
         if (switchInt == 1) {
@@ -150,6 +190,13 @@ public class CircleListLayout extends ViewGroup {
             anima = ObjectAnimator.ofInt(this, "ChildAlphaSecond", mChildAlphaThird, mChildAlphaSecond);
             animaList.add(anima);
             anima = ObjectAnimator.ofInt(this, "ChildAlphaThird", mChildAlpha, mChildAlphaThird);
+            animaList.add(anima);
+
+            anima = ObjectAnimator.ofFloat(this, "ChildElevate", mChildElevateSecond, mChildElevate);
+            animaList.add(anima);
+            anima = ObjectAnimator.ofFloat(this, "ChildElevateSecond", mChildElevateThird, mChildElevateSecond);
+            animaList.add(anima);
+            anima = ObjectAnimator.ofFloat(this, "ChildElevateThird", mChildElevate, mChildElevateThird);
             animaList.add(anima);
 
         }
@@ -175,15 +222,23 @@ public class CircleListLayout extends ViewGroup {
             anima = ObjectAnimator.ofInt(this, "ChildAlphaThird", mChildAlphaSecond, mChildAlphaThird);
             animaList.add(anima);
 
+            anima = ObjectAnimator.ofFloat(this, "ChildElevate", mChildElevateThird, mChildElevate);
+            animaList.add(anima);
+            anima = ObjectAnimator.ofFloat(this, "ChildElevateSecond", mChildElevate, mChildElevateSecond);
+            animaList.add(anima);
+            anima = ObjectAnimator.ofFloat(this, "ChildElevateThird", mChildElevateSecond, mChildAlphaThird);
+            animaList.add(anima);
+
         }
         mSwitchAnimator.playTogether(animaList);
         mSwitchAnimator.setDuration(100).setInterpolator(new DecelerateInterpolator());
         mSwitchAnimator.start();
 
+        updateButtonsState();
 
     }
 
-    public void setRadius(float r){ this.mRadius = r; }
+    public void setRadius(float r){ this.mRadius = r; setListLayout();}
     public void setRadiusSecond(float r){ this.mRadiusSecond = r; }
     public void setRadiusThird(float r){ this.mRadiusThird = r; }
     public void setChildWidth(int w){ this.mChildWidth = w; }
@@ -191,8 +246,29 @@ public class CircleListLayout extends ViewGroup {
     public void setChildWidthThird(int w){ this.mChildWidthThird = w; }
     public void setChildAlpha(int a){ this.mChildAlpha = a; }
     public void setChildAlphaSecond(int a){ this.mChildAlphaSecond = a; }
-    public void setChildAlphaThird(int a){ this.mChildAlphaThird = a; setListLayout();}
+    public void setChildAlphaThird(int a){ this.mChildAlphaThird = a; }
+    public void setChildElevate(int e){ this.mChildElevate = e; }
+    public void setChildElevateSecond(int e){ this.mChildElevateSecond = e; }
+    public void setChildElevateThird(int e){ this.mChildElevateThird = e;}
+    public void setCurrentAngle(float angle){
+        mClockwise = angle > mCurrentAngle;
+        mCurrentAngle = angle;
+        setListLayout();
+    }
 
+
+
+    public void updateButtonsState() {
+        int childCount = getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = getChildAt((i + mAppsPerLayer * mLayerSelected) % childCount);
+            if (i < mAppsPerLayer) {
+                child.setEnabled(true);
+            } else {
+                child.setEnabled(false);
+            }
+        }
+    }
     /*public void moveButton(View view, float dx, float dy){
         int childL = Math.round(view.getLeft() + dx);
         int childT = Math.round(view.getTop() + dy);
@@ -269,7 +345,7 @@ public class CircleListLayout extends ViewGroup {
         if (action == MotionEvent.ACTION_MOVE && mRotateEnable){
             intercept = this.gestureDetector.onTouchEvent(ev);
         }
-
+        Log.d(LOG_TAG, intercept + ev.toString());
         return intercept;
     }
 
@@ -278,44 +354,14 @@ public class CircleListLayout extends ViewGroup {
         String LOG_TAG = "onTouchEvent";
         int action  = ev.getAction();
         boolean consume = true;
-        if (action != MotionEvent.ACTION_DOWN){
+        if (action != MotionEvent.ACTION_DOWN && mRotateEnable){
             consume = this.gestureDetector.onTouchEvent(ev);
         }
+        Log.d(LOG_TAG, consume + ev.toString());
         return consume;
     }
 
-    public void setListLayout(){
 
-        int childCount = getChildCount();
-        int childL, childT;
-
-        for (int i=0; i<childCount; i++){
-            View child = getChildAt((i+ mAppsPerLayer * mLayerSelected)%childCount);
-            if (child.getVisibility() == View.GONE) { continue; }
-            int thisChildWidth;
-            float radius;
-            if (i < mAppsPerLayer){
-                ((ImageView) child).setImageAlpha(mChildAlpha);
-                radius = mRadius;
-                thisChildWidth = mChildWidth;
-            }else if (i < mAppsPerLayer*2){
-                ((ImageView) child).setImageAlpha(mChildAlphaSecond);
-                radius = mRadiusSecond;
-                thisChildWidth = mChildWidthSecond;
-            }else {
-                ((ImageView) child).setImageAlpha(mChildAlphaThird);
-                radius = mRadiusThird;
-                thisChildWidth = mChildWidthThird;
-            }
-            child.measure(MeasureSpec.makeMeasureSpec(Math.round(thisChildWidth), MeasureSpec.EXACTLY),
-                    MeasureSpec.makeMeasureSpec(Math.round(thisChildWidth), MeasureSpec.EXACTLY));
-
-            childL = mOriginVertical + (int) Math.round(radius * Math.cos(mCurrentAngle + mDeltaAngle * ( 1 + i % 8) ) - thisChildWidth/2);
-            childT = mOriginHorizontal + (int) Math.round(radius * Math.sin(mCurrentAngle + mDeltaAngle * ( 1 + i % 8) ) - thisChildWidth/2);
-
-            child.layout(childL, childT, childL + thisChildWidth, childT + thisChildWidth);
-        }
-    }
 
     public void stopRotateAnimator(){
         if (mRotateAnimator != null && mRotateAnimator.isRunning()){
@@ -329,6 +375,10 @@ public class CircleListLayout extends ViewGroup {
     public void setRotateEnable(boolean isEnable){
         mRotateEnable = isEnable;
     }
+
+    public void setSelectingMode(boolean selectingMode){ mSelectingMode = selectingMode; }
+
+    public boolean isSelectingMode(){ return mSelectingMode; }
 
     public int getAppShortcutsTotal(){
         return mAppShortcutTotal;

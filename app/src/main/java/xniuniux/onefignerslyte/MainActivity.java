@@ -141,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         switch (tag){
             case "AppShortcutFragment":
                 if (action == FRG_ACTION_KILL){
+                    mAppChooserFragment = (AppChooserFragment) fm.findFragmentById(R.id.app_shortcut_container);
                     fm.beginTransaction().remove(mAppShortcutFragment).commit();
                     break;
                 }

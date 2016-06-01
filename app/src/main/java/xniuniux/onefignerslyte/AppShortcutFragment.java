@@ -12,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -40,7 +41,6 @@ public class AppShortcutFragment extends Fragment {
 
 
     public ArrayList<Integer> getSelectedApp(){
-        mSelectedApp.add(3);
         return mSelectedApp;
     }
 
@@ -70,7 +70,7 @@ public class AppShortcutFragment extends Fragment {
             button.setImageBitmap(app.icons.get(1));
             button.setOnClickListener(onClickListener);
             button.setOnLongClickListener(onLongClickListener);
-            button.setOnTouchListener(onTouchListener);
+            //button.setOnTouchListener(onTouchListener);
             cLayout.addView(button);
         }
         showList();
@@ -167,9 +167,32 @@ public class AppShortcutFragment extends Fragment {
     public View.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            AppShortInfo app = MainActivity.appList.get((int) view.getTag());
-            Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
-            AppShortcutFragment.this.startActivity(i);
+            if(cLayout.isSelectingMode()){
+                int tag = (int) view.getTag();
+
+                if ( mSelectedApp.contains(tag) ){
+                    mSelectedApp.remove((Integer) tag);
+                    view.setBackground(null);
+
+                    if (mSelectedApp.size() == 0){
+                        cLayout.setSelectingMode(false);
+                        fab.setOnClickListener(null);
+                        fab.hide();
+                    }
+
+                } else {
+                    if (mSelectedApp.size() > 4){
+                        Snackbar.make(cLayout,"你選太多了",Snackbar.LENGTH_SHORT).show();
+                        return;
+                    }
+                    mSelectedApp.add(tag);
+                    view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(3)));
+                }
+            } else {
+                AppShortInfo app = MainActivity.appList.get((int) view.getTag());
+                Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
+                AppShortcutFragment.this.startActivity(i);
+            }
 
         }
     };
@@ -177,8 +200,20 @@ public class AppShortcutFragment extends Fragment {
     public View.OnLongClickListener onLongClickListener = new View.OnLongClickListener(){
         @Override
         public boolean onLongClick(View view){
-            cLayout.setRotateEnable(false);
-            interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_CHANGE_SHORTCUT);
+            if(cLayout.isSelectingMode()){ return true; }
+            cLayout.setSelectingMode(true);
+            mSelectedApp.removeAll(mSelectedApp);
+            fab.show();
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    cLayout.setSelectingMode(false);
+                    fab.setOnClickListener(null);
+                    fab.hide();
+                    interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_CHANGE_SHORTCUT);
+                }
+            });
+            onClickListener.onClick(view);
             //view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(3)));
             return  true;
         }
@@ -223,8 +258,8 @@ public class AppShortcutFragment extends Fragment {
         }
     };
 
+
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         void onFragmentInteraction(String TAG, int ACTION);
     }
 

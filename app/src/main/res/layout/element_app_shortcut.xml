@@ -6,6 +6,7 @@
     android:clickable="true"
     android:scaleType="fitCenter"
     android:adjustViewBounds="true"
-    android:visibility="invisible">
+    android:visibility="invisible"
+    android:layout_gravity="fill">
 
 </ImageView>
