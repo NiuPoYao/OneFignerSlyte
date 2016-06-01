@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
@@ -93,6 +94,7 @@ public class CircleListLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean change, int l, int t, int r, int b){
+        Log.d(LOG_TAG,"onLayout");
         setListByAngle(mCurrentAngle);
     }
 
