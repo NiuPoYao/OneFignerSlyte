@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,6 +33,7 @@ public class AppShortcutFragment extends Fragment {
     private OnFragmentInteractionListener interactionListener;
     private CircleListLayout cLayout;
     private ArrayList<Integer> mSelectedApp = new ArrayList<>();
+    private FloatingActionButton fab;
 
     public AppShortcutFragment() {
     }
@@ -58,17 +60,16 @@ public class AppShortcutFragment extends Fragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_app_shortcut, container, false);
         cLayout = (CircleListLayout) rootView.findViewById(R.id.circle_list_layout);
+        fab = (FloatingActionButton) rootView.findViewById(R.id.shortcut_fab);
+        fab.setOnClickListener(shortcutFabOnClickListener);
 
         for (int i = 0; i < cLayout.getAppShortcutsNum(); i++){
             ImageView button = (ImageView) inflater.inflate(R.layout.element_app_shortcut, null);
             AppShortInfo app = MainActivity.appList.get(i);
             button.setTag(i);
             button.setImageBitmap(app.icons.get(1));
-            if (i<cLayout.mAppsPerLayer){
-                button.setImageAlpha(180);
-            } else {
-                button.setImageAlpha(64);
-            }
+            button.setImageAlpha(64);
+
             Log.d(LOG_TAG,button.getMeasuredWidth() + " " + button.getMeasuredHeight());
             button.setOnClickListener(onClickListener);
             button.setOnLongClickListener(onLongClickListener);
@@ -76,6 +77,7 @@ public class AppShortcutFragment extends Fragment {
             cLayout.addView(button);
         }
         showList();
+
         return rootView;
 
     }
@@ -96,8 +98,11 @@ public class AppShortcutFragment extends Fragment {
                 Handler handler = new Handler();
                 final float startX = cLayout.getWidth()/2;
                 final float startY = cLayout.getHeight()/2;
-                for ( int i = 0; i < cLayout.getChildCount(); i++ ){
-                    final ImageView child = (ImageView) cLayout.getChildAt(i);
+                int layerSelected = cLayout.mLayerSelected;
+                int appsPerLayer = cLayout.mAppsPerLayer;
+                int childCount = cLayout.getChildCount();
+                for ( int i = 0; i < childCount; i++ ){
+                    final ImageView child = (ImageView) cLayout.getChildAt((i+ appsPerLayer * layerSelected) % childCount);
                     handler.postDelayed(
                             new Runnable() {
                                 @Override
@@ -216,6 +221,13 @@ public class AppShortcutFragment extends Fragment {
         }
     };
 
+    public View.OnClickListener shortcutFabOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            fab.setOnClickListener(null);
+            hideList();
+        }
+    };
 
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name

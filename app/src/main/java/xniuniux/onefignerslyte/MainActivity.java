@@ -178,19 +178,13 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         @Override
         public void onClick(View view) {
             FragmentManager fm = getSupportFragmentManager();
-            if (!isAppListShow) {
-                if (!mAppShortcutFragment.isAdded()){
-                    fm.beginTransaction()
-                            .add(R.id.main_content, mAppShortcutFragment)
-                            .addToBackStack(null)
-                            .commit();
-                    isAppListShow = true;
-                    return;
-                }
-            } else {
-                mAppShortcutFragment.hideList();
-                isAppListShow = false;
+            if (!mAppShortcutFragment.isAdded()){
+                fm.beginTransaction()
+                        .add(R.id.main_content, mAppShortcutFragment)
+                        .commit();
+                return;
             }
+
         }
     };
 

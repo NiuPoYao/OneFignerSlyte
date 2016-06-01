@@ -16,7 +16,7 @@
         android:layout_gravity="center"/>
 
     <include layout="@layout/element_fab"
-        android:id="@+id/chooser_fab"
+        android:id="@+id/shortcut_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"/>
