@@ -59,7 +59,7 @@ public class CircleListLayout extends ViewGroup {
         gestureDetector.setIsLongpressEnabled(false);
     }
 
-    public void setMCurrentAngle(float angle){
+    public void setCurrentAngle(float angle){
         mClockwise = angle > mCurrentAngle;
         setListByAngle(angle);
         mCurrentAngle = angle;
@@ -100,7 +100,7 @@ public class CircleListLayout extends ViewGroup {
         if ( mRotateAnimator != null && mRotateAnimator.isRunning() ) {
             return;
         }
-        mRotateAnimator = ObjectAnimator.ofFloat(this, "mCurrentAngle", mCurrentAngle, mCurrentAngle + angle);
+        mRotateAnimator = ObjectAnimator.ofFloat(this, "CurrentAngle", mCurrentAngle, mCurrentAngle + angle);
         mRotateAnimator.setInterpolator(new OvershootInterpolator());
         mRotateAnimator.setDuration(duration);
         mRotateAnimator.start();
@@ -156,35 +156,16 @@ public class CircleListLayout extends ViewGroup {
             }
             if (!mSwitchLayer){
                 float endAngle = (float) Math.atan2(endY, endX);
-                setMCurrentAngle(endAngle - mStartAngle + mCurrentAngle);
+                setCurrentAngle(endAngle - mStartAngle + mCurrentAngle);
                 mStartAngle = endAngle;
             }
             return true;
         }
-
-         /*@Override
-        public void onLongPress(MotionEvent event) {
-            mDrag = false;
-            Log.d(DEBUG_TAG, "onLongPress: " + mDrag);
-        }*/
-
-        /*@Override
-        public boolean onSingleTapUp(MotionEvent event) {
-            Log.d(DEBUG_TAG, "onSingleTapUp: " + event.toString());
-            return false;
-        }
-
-        @Override
-        public boolean onSingleTapConfirmed(MotionEvent event) {
-            Log.d(DEBUG_TAG, "onSingleTapConfirmed: " + event.toString());
-            return false;
-        }*/
-
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev){
-        String LOG_TAG = "intercept";
+        String LOG_TAG = "intercept touch event";
         boolean  intercept = false;
 
         int action = ev.getAction();
