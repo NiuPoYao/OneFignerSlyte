@@ -1,7 +1,9 @@
 package xniuniux.onefignerslyte;
 
 import android.animation.Animator;
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -10,9 +12,12 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnticipateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
-import android.widget.Toast;
+
+import java.util.ArrayList;
 
 /**
  * Created on 2016/5/10.
@@ -243,9 +248,44 @@ public class CircleListLayout extends ViewGroup {
 
     public void switchLayer(int i){
         mLayerSelected = (mLayerSelected + i + mLayerTotal) % mLayerTotal;
-        Toast.makeText(getContext(), "Layer add " + i + " to " + mLayerSelected,
-                Toast.LENGTH_SHORT).show();
-        mSwitchLayer = null;
+        AnimatorSet animatorSet = new AnimatorSet();
+        ArrayList<Animator> animatorList = new ArrayList<>();
+        animatorSet.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_KILL);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+            }
+        });
+        float startX = cLayout.getWidth() / 2;
+        float startY = cLayout.getHeight() / 2;
+        for (int i = 0; i < cLayout.getChildCount(); i++) {
+            View child = cLayout.getChildAt(i);
+            float deltaX = startX - child.getLeft() - child.getWidth()/2;
+            float deltaY = startY - child.getTop() - child.getHeight()/2;
+            ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(
+                    child,
+                    PropertyValuesHolder.ofFloat("translationX", 0.0f, deltaX),
+                    PropertyValuesHolder.ofFloat("translationY", 0.0f, deltaY)
+            );
+            animatorList.add(animator);
+        }
+
+        animatorSet.playTogether(animatorList);
+        animatorSet.setInterpolator(new AnticipateInterpolator());
+        animatorSet.setDuration(200);
+        animatorSet.start();
     }
 
     public void moveButton(View view, float dx, float dy){
