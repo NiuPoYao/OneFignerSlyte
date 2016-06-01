@@ -13,12 +13,13 @@
         android:padding="@dimen/app_chooser_padding">
 
         <GridLayout
+            xmlns:grid="http://schemas.android.com/apk/res-auto"
             android:id="@+id/app_chooser_candidate"
             android:columnCount="5"
             android:rowCount="2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="fill"
+            android:layout_gravity="fill_horizontal"
             android:columnOrderPreserved="false"
             android:layout_margin="0dp"
             android:background="@color/colorWhiteTrans"
