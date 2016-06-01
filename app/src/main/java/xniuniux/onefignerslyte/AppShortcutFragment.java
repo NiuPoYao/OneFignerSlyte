@@ -63,14 +63,11 @@ public class AppShortcutFragment extends Fragment {
         fab = (FloatingActionButton) rootView.findViewById(R.id.shortcut_fab);
         fab.setOnClickListener(shortcutFabOnClickListener);
 
-        for (int i = 0; i < cLayout.getAppShortcutsNum(); i++){
+        for (int i = 0; i < cLayout.getAppShortcutsTotal(); i++){
             ImageView button = (ImageView) inflater.inflate(R.layout.element_app_shortcut, null);
             AppShortInfo app = MainActivity.appList.get(i);
             button.setTag(i);
             button.setImageBitmap(app.icons.get(1));
-            button.setImageAlpha(64);
-
-            Log.d(LOG_TAG,button.getMeasuredWidth() + " " + button.getMeasuredHeight());
             button.setOnClickListener(onClickListener);
             button.setOnLongClickListener(onLongClickListener);
             button.setOnTouchListener(onTouchListener);
@@ -124,9 +121,6 @@ public class AppShortcutFragment extends Fragment {
             }
         });
     }
-
-
-
 
     public void hideList() {
         AnimatorSet animatorSet = new AnimatorSet();
@@ -209,7 +203,7 @@ public class AppShortcutFragment extends Fragment {
             if (action == MotionEvent.ACTION_MOVE){
                 float moveToX = ev.getX();
                 float moveToY = ev.getY();
-                cLayout.moveButton(view, moveToX-moveFromX, moveToY-moveFromY);
+                //cLayout.moveButton(view, moveToX-moveFromX, moveToY-moveFromY);
             }
 
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
