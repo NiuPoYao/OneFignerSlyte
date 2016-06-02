@@ -11,10 +11,8 @@ import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,13 +26,14 @@ import java.util.ArrayList;
 
 import xniuniux.onefignerslyte.MainActivity.AppShortInfo;
 
-public class AppShortcutFragment extends Fragment {
+public class AppShortcutFragment extends Fragment implements MainActivity.ListenerHolder{
 
     String LOG_TAG = "AppShortcutFragment";
-    private OnFragmentInteractionListener interactionListener;
+    private OnFragmentInteractionListener mInteractionListener;
     private CircleListLayout cLayout;
     private ArrayList<Integer> mSelectedApp = new ArrayList<>();
-    private FloatingActionButton fab;
+
+    private View.OnClickListener shortcutFabOnClickListener;
 
     public AppShortcutFragment() {
     }
@@ -49,7 +48,7 @@ public class AppShortcutFragment extends Fragment {
         super.onAttach(context);
         if (context instanceof Activity){
             Activity a =(Activity) context;
-            interactionListener = (OnFragmentInteractionListener) a;
+            mInteractionListener = (OnFragmentInteractionListener) a;
 
         }
     }
@@ -60,20 +59,10 @@ public class AppShortcutFragment extends Fragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_app_shortcut, container, false);
         cLayout = (CircleListLayout) rootView.findViewById(R.id.circle_list_layout);
-        fab = (FloatingActionButton) rootView.findViewById(R.id.shortcut_fab);
-        fab.setOnClickListener(shortcutFabOnClickListener);
 
-        for (int i = 0; i < cLayout.getAppShortcutsTotal(); i++){
-            ImageView button = (ImageView) inflater.inflate(R.layout.element_app_shortcut, null);
-            AppShortInfo app = MainActivity.appList.get(i);
-            button.setTag(i);
-            button.setImageBitmap(app.icons.get(1));
-            button.setOnClickListener(onClickListener);
-            button.setOnLongClickListener(onLongClickListener);
-            //button.setOnTouchListener(onTouchListener);
-            cLayout.addView(button);
-        }
+        renewList();
         showList();
+        shortcutFabOnClickListener = destroyFabOnClickListener;
 
         return rootView;
 
@@ -84,6 +73,21 @@ public class AppShortcutFragment extends Fragment {
     @Override
     public void onStart(){
         super.onStart();
+    }
+
+    public void renewList(){
+        for (int i = 0; i < cLayout.getAppShortcutsTotal(); i++){
+            ImageView button = (ImageView) LayoutInflater.from(getContext()).
+                    inflate(R.layout.element_app_shortcut, null);
+            AppShortInfo app = MainActivity.appList.get(i);
+            button.setTag(i);
+            button.setImageBitmap(app.icons.get(1));
+            button.setOnClickListener(onClickListener);
+            button.setOnLongClickListener(onLongClickListener);
+            //button.setOnTouchListener(onTouchListener);
+            cLayout.addView(button);
+            mSelectedApp.clear();
+        }
     }
 
     public void showList(){
@@ -132,7 +136,7 @@ public class AppShortcutFragment extends Fragment {
 
             @Override
             public void onAnimationEnd(Animator animator) {
-                interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_KILL);
+                mInteractionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_KILL);
             }
 
             @Override
@@ -176,12 +180,12 @@ public class AppShortcutFragment extends Fragment {
 
                     if (mSelectedApp.size() == 0){
                         cLayout.setSelectingMode(false);
-                        fab.setOnClickListener(null);
-                        fab.hide();
+                        shortcutFabOnClickListener = destroyFabOnClickListener;
+                        mInteractionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_LISTENER_UPDATE);
                     }
 
                 } else {
-                    if (mSelectedApp.size() > 4){
+                    if (mSelectedApp.size() > 5){
                         Snackbar.make(cLayout,"你選太多了",Snackbar.LENGTH_SHORT).show();
                         return;
                     }
@@ -202,19 +206,17 @@ public class AppShortcutFragment extends Fragment {
         public boolean onLongClick(View view){
             if(cLayout.isSelectingMode()){ return true; }
             cLayout.setSelectingMode(true);
-            mSelectedApp.removeAll(mSelectedApp);
-            fab.show();
-            fab.setOnClickListener(new View.OnClickListener() {
+            mSelectedApp.clear();
+
+            shortcutFabOnClickListener = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     cLayout.setSelectingMode(false);
-                    fab.setOnClickListener(null);
-                    fab.hide();
-                    interactionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_CHANGE_SHORTCUT);
+                    mInteractionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_CHANGE_SHORTCUT);
                 }
-            });
+            };
+            mInteractionListener.onFragmentInteraction(LOG_TAG, MainActivity.FRG_ACTION_LISTENER_UPDATE);
             onClickListener.onClick(view);
-            //view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(3)));
             return  true;
         }
     };
@@ -250,18 +252,17 @@ public class AppShortcutFragment extends Fragment {
         }
     };
 
-    public View.OnClickListener shortcutFabOnClickListener = new View.OnClickListener() {
+    public View.OnClickListener destroyFabOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            fab.setOnClickListener(null);
             hideList();
         }
     };
 
 
-    public interface OnFragmentInteractionListener {
-        void onFragmentInteraction(String TAG, int ACTION);
+    @Override
+    public View.OnClickListener getClickListener() {
+        return shortcutFabOnClickListener;
     }
-
 }
 

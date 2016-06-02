@@ -21,21 +21,20 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AppShortcutFragment.OnFragmentInteractionListener,
-        AppChooserFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
 
     private String LOG_TAG = "Main Activity";
 
@@ -43,17 +42,23 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
     public static final int FRG_ACTION_KILL = -1;
     public static final int FRG_ACTION_CHANGE_SHORTCUT = 1;
     public static final int FRG_ACTION_CONFIRM= 2;
+    public static final int FRG_ACTION_LISTENER_UPDATE= 3;
 
+    private FragmentManager fm;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
     private AppShortcutFragment mAppShortcutFragment = new AppShortcutFragment();
     private AppChooserFragment mAppChooserFragment;
-    private boolean isAppListShow = false;
     private PackageManager mPm;
     private ArrayList<ResolveInfo> mLaunchableApps;
 
+    private FloatingActionButton fab;
+
+    private ArrayList<Integer> mVacancies = new ArrayList<>();
+    private ArrayList<Integer> mCandidates = new ArrayList<>();
     public static List<AppShortInfo> appList;
 
+    String lastTag = "last";
 
     //public View.OnClickListener mainFabOnClickListener;
     public class AppShortInfo {
@@ -67,8 +72,10 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.main_fab);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
+                WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        fab = (FloatingActionButton) findViewById(R.id.main_fab);
 
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
         Drawable wallpaperDrawable = wallpaperManager.getDrawable();
@@ -79,7 +86,15 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        setSupportActionBar(toolbar);
+        fm = getSupportFragmentManager();
+        fm.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                setFabClickListener();
+            }
+        });
+
+        //setSupportActionBar(toolbar);
 
         if (fab != null) {
             fab.setOnClickListener(mainFabOnClickListener);
@@ -94,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
 
         mLaunchableApps = sortRIsByLabel(mLaunchableApps, mPm);
 
-        setAppList(null);
+        setAppList(null, null);
 
     }
 
@@ -115,46 +130,66 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         new getIconSet().execute(app, RI);
     }
 
-    public void setAppList(ArrayList<Integer> list){
+    public void setAppList(ArrayList<Integer> vacanciesList, ArrayList<Integer> candidatesList){
 
-        if (appList == null || appList.size()<24){
+        if (appList == null) {
+            appList = new ArrayList<>();
+        }
+
+        if (vacanciesList == null && candidatesList == null){
             Log.d(LOG_TAG, "retrieving app data");
-            if (appList == null) {
-                appList = new ArrayList<>();
-            }
             for (ResolveInfo RI : mLaunchableApps){
-                AppShortInfo app = new AppShortInfo();
-                appList.add(app);
-                setAppList(appList.size()-1,RI);
-                if (appList.size()>=24){
+                if (MainActivity.appList.size()>23){
                     break;
                 }
+                AppShortInfo app = new AppShortInfo();
+                appList.add(app);
+                setAppList(MainActivity.appList.size()-1,RI);
             }
         }
 
+        if (candidatesList != null && candidatesList.size()>0){
+            ResolveInfo RI;
+            for (int i = 0; i < candidatesList.size(); i++){
+                RI = mLaunchableApps.get(candidatesList.get(i));
+                setAppList(vacanciesList.get(i) , RI);
+            }
+        }
     }
 
 
     @Override
     public void onFragmentInteraction(String tag, int action) {
         FragmentManager fm = getSupportFragmentManager();
+        if (action == FRG_ACTION_LISTENER_UPDATE){
+            setFabClickListener();
+        }
         switch (tag){
             case "AppShortcutFragment":
                 if (action == FRG_ACTION_KILL){
-                    mAppChooserFragment = (AppChooserFragment) fm.findFragmentById(R.id.app_shortcut_container);
-                    fm.beginTransaction().remove(mAppShortcutFragment).commit();
+                    fm.popBackStack();
+                    Log.d(LOG_TAG, fm.getBackStackEntryCount() + "");
                     break;
                 }
                 if (action == FRG_ACTION_CHANGE_SHORTCUT){
                     mAppChooserFragment = new AppChooserFragment();
                     mAppChooserFragment.setLaunchableAppsRI(mLaunchableApps);
                     mAppChooserFragment.setVacancies(mAppShortcutFragment.getSelectedApp());
-                    fm.beginTransaction().replace(R.id.main_content, mAppChooserFragment).addToBackStack(null).commit();
+                    fm.beginTransaction().replace(R.id.main_content, mAppChooserFragment,"AppChooser")
+                            .addToBackStack("AppChooser").commit();
                     break;
                 }
             case "AppChooserFragment":
                 if (action == FRG_ACTION_CONFIRM){
-                    fm.popBackStack();
+                    this.mVacancies = mAppChooserFragment.getVacancies();
+                    this.mCandidates = mAppChooserFragment.getCandidates();
+                    setAppList(mVacancies, mCandidates);
+                    fm.beginTransaction()
+                            .replace(R.id.main_content, mAppShortcutFragment, "appShortcut")
+                            .addToBackStack("appShortcut")
+                            .commit();
+                    mVacancies = null;
+                    mCandidates = null;
                     break;
                 }
         }
@@ -166,11 +201,6 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
 
     @Override
     public void onPause(){
-        /*if (isAppListShow){
-            FragmentManager fm = getSupportFragmentManager();
-            fm.beginTransaction().remove(mAppShortcutFragment).commit();
-            isAppListShow = false;
-        }*/
         super.onPause();
     }
 
@@ -181,9 +211,9 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
             FragmentManager fm = getSupportFragmentManager();
             if (!mAppShortcutFragment.isAdded()){
                 fm.beginTransaction()
-                        .add(R.id.main_content, mAppShortcutFragment)
+                        .add(R.id.main_content, mAppShortcutFragment, "appShortcut")
+                        .addToBackStack("appShortcut")
                         .commit();
-                return;
             }
 
         }
@@ -262,24 +292,21 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
     }
 
 
-    public class getIconSet extends AsyncTask<Object, Void, Drawable> {
+    public class getIconSet extends AsyncTask<Object, Void, Void> {
 
         private AppShortInfo appInfo;
         private ResolveInfo ri;
 
         @Override
-        protected Drawable doInBackground(final Object... param){
+        protected Void doInBackground(final Object... param){
             appInfo = (AppShortInfo) param[0];
             ri = (ResolveInfo) param[1];
-            return ri.loadIcon(mPm);
-
-        }
-
-        @Override
-        protected void onPostExecute(Drawable icon){
-            super.onPostExecute(icon);
+            Drawable icon = ri.loadIcon(mPm);
             appInfo.icons = highlightImage(((BitmapDrawable) icon).getBitmap());
+            return null;
         }
+
+
     }
 
     public List<Bitmap> highlightImage(Bitmap icon) {
@@ -321,11 +348,37 @@ public class MainActivity extends AppCompatActivity implements AppShortcutFragme
         return icons;
     }
 
-    public void changeAppShortcutList(){
+    public void setFabClickListener(){
+        Fragment frg = getCurrentFragment();
+        if (frg == null){
+            Log.d(LOG_TAG,"frg is null");
+            fab.setOnClickListener(this.mainFabOnClickListener);
+            if ( !fab.isShown() ){fab.show();}
+            return;
+        }
+        if (frg instanceof ListenerHolder){
+           View.OnClickListener listener = ((ListenerHolder) frg).getClickListener();
+            if (listener != null){
+                fab.setOnClickListener(listener);
+                if ( !fab.isShown() ){fab.show();}
+                return;
+            }
+        }
+        fab.hide();
+    }
+
+    public Fragment getCurrentFragment(){
+
+        if (fm.getBackStackEntryCount() == 0){ return null;}
+        //Log.d(LOG_TAG,fm.getBackStackEntryAt(fm.getBackStackEntryCount()-1).getName());
+        return fm.findFragmentByTag(fm.getBackStackEntryAt(fm.getBackStackEntryCount()-1).getName());
 
     }
 
 
+    public interface ListenerHolder{
+        public View.OnClickListener getClickListener();
+    }
 }
 
 

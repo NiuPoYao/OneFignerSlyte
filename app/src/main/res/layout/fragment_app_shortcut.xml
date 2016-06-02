@@ -16,10 +16,13 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"/>
 
-    <include layout="@layout/element_fab"
-        android:id="@+id/shortcut_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center" />
+    <ImageView
+        android:id="@+id/app_shortcut_center"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="@drawable/background_app_list"
+        android:clickable="true"
+        android:layout_gravity="center"/>
+
 
 </FrameLayout>

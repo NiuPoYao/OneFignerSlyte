@@ -4,10 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="true"
-    android:scaleType="fitCenter"
-    android:adjustViewBounds="true"
     android:visibility="invisible"
-    android:layout_gravity="fill"
     android:layout_columnWeight="1"
     android:layout_rowWeight="1">
 
