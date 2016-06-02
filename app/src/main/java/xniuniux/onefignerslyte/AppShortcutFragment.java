@@ -60,8 +60,7 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
         View rootView = inflater.inflate(R.layout.fragment_app_shortcut, container, false);
         cLayout = (CircleListLayout) rootView.findViewById(R.id.circle_list_layout);
 
-        renewList();
-        showList();
+
         shortcutFabOnClickListener = destroyFabOnClickListener;
 
         return rootView;
@@ -73,6 +72,13 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     @Override
     public void onStart(){
         super.onStart();
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        renewList();
+        showList();
     }
 
     public void renewList(){
@@ -193,6 +199,7 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
                     view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(3)));
                 }
             } else {
+                view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(2)));
                 AppShortInfo app = MainActivity.appList.get((int) view.getTag());
                 Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
                 AppShortcutFragment.this.startActivity(i);
@@ -233,7 +240,6 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
             if (action == MotionEvent.ACTION_DOWN) {
                 moveFromX = ev.getX();
                 moveFromY = ev.getY();
-                view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(2)));
                 consume = false;
             }
 
@@ -245,7 +251,7 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
 
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 cLayout.setRotateEnable(true);
-                button.setBackgroundColor(0x00000000);
+                button.setBackground(null);
                 consume = false;
             }
             return consume;

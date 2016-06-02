@@ -229,7 +229,7 @@ public class CircleListLayout extends ViewGroup {
 
         }
         mSwitchAnimator.playTogether(animaList);
-        mSwitchAnimator.setDuration(100).setInterpolator(new DecelerateInterpolator());
+        mSwitchAnimator.setDuration(200).setInterpolator(new DecelerateInterpolator());
         mSwitchAnimator.start();
 
         updateButtonsState();

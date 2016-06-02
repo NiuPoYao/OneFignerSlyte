@@ -184,10 +184,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                     this.mVacancies = mAppChooserFragment.getVacancies();
                     this.mCandidates = mAppChooserFragment.getCandidates();
                     setAppList(mVacancies, mCandidates);
-                    fm.beginTransaction()
-                            .replace(R.id.main_content, mAppShortcutFragment, "appShortcut")
-                            .addToBackStack("appShortcut")
-                            .commit();
+                    fm.popBackStack();
                     mVacancies = null;
                     mCandidates = null;
                     break;
