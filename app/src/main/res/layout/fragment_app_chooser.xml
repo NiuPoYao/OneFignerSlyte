@@ -23,13 +23,11 @@
 
             <TableRow
                 android:id="@+id/app_chooser_vacancies"
-                android:gravity="fill"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_marginBottom="8dp"/>
             <TableRow
                 android:id="@+id/app_chooser_candidates"
-                android:gravity="fill"
                 android:layout_width="0dp"
                 android:layout_weight="1"/>
 

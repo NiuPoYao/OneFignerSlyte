@@ -8,9 +8,7 @@
     android:scaleType="fitCenter"
     android:adjustViewBounds="true"
     android:visibility="invisible"
-    android:maxHeight="48dp"
-    android:minHeight="48dp"
-    android:maxWidth="48dp"
+    android:maxHeight="@dimen/app_shortcut_max_height"
     >
 
 </ImageView>
