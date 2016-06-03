@@ -19,14 +19,20 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_margin="16dp"
-            android:background="@color/colorWhiteTrans">
+            android:stretchColumns="*">
 
             <TableRow
                 android:id="@+id/app_chooser_vacancies"
-                android:layout_height="64dp"/>
+                android:gravity="fill"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginBottom="8dp"/>
             <TableRow
                 android:id="@+id/app_chooser_candidates"
-                android:layout_height="20dp"/>
+                android:gravity="fill"
+                android:layout_width="0dp"
+                android:layout_weight="1"/>
+
         </TableLayout>
 
         <GridView

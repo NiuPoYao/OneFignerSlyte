@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -56,12 +57,16 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(LOG_TAG,"onCreateView");
         // Inflate the layout for this fragment
+        super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_app_shortcut, container, false);
         cLayout = (CircleListLayout) rootView.findViewById(R.id.circle_list_layout);
 
-
         shortcutFabOnClickListener = destroyFabOnClickListener;
+
+        renewList(null);
+        showList();
 
         return rootView;
 
@@ -72,28 +77,46 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     @Override
     public void onStart(){
         super.onStart();
+        Log.d(LOG_TAG,"onStart");
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        renewList();
-        showList();
+        Log.d(LOG_TAG,"onResume");
+        if (mSelectedApp != null && mSelectedApp.size()>0 ) {
+            renewList(mSelectedApp);
+            cLayout.invalidate();
+            cLayout.setSelectingMode(false);
+        }
     }
 
-    public void renewList(){
-        for (int i = 0; i < cLayout.getAppShortcutsTotal(); i++){
-            ImageView button = (ImageView) LayoutInflater.from(getContext()).
-                    inflate(R.layout.element_app_shortcut, null);
+    public void renewList(ArrayList<Integer> renewList){
+        Log.d(LOG_TAG,"renew list");
+        if (renewList == null || renewList.size() == 0){
+            renewList = new ArrayList<>();
+            for (int i = 0; i < cLayout.getAppShortcutsTotal(); renewList.add(i), i++);
+        }
+        for (int i : renewList) {
+            ImageView button;
+            if ( cLayout.getChildCount() > i ){
+                button = (ImageView) cLayout.getChildAt(i);
+                Log.d(LOG_TAG,"no add view");
+            } else {
+                button = (ImageView) LayoutInflater.from(getContext()).
+                        inflate(R.layout.element_app_shortcut, null);
+                cLayout.addView(button);
+                Log.d(LOG_TAG,"add view");
+                button.setOnClickListener(onClickListener);
+                button.setOnLongClickListener(onLongClickListener);
+                button.setOnTouchListener(onTouchListener);
+            }
             AppShortInfo app = MainActivity.appList.get(i);
             button.setTag(i);
             button.setImageBitmap(app.icons.get(1));
-            button.setOnClickListener(onClickListener);
-            button.setOnLongClickListener(onLongClickListener);
-            //button.setOnTouchListener(onTouchListener);
-            cLayout.addView(button);
-            mSelectedApp.clear();
+            button.setBackground(null);
         }
+        mSelectedApp.clear();
     }
 
     public void showList(){
@@ -101,6 +124,7 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
+                Log.d(LOG_TAG,"Global layout OK!");
                 cLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 Handler handler = new Handler();
                 final float startX = cLayout.getWidth()/2;
@@ -199,7 +223,6 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
                     view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(3)));
                 }
             } else {
-                view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(2)));
                 AppShortInfo app = MainActivity.appList.get((int) view.getTag());
                 Intent i = getActivity().getPackageManager().getLaunchIntentForPackage(app.name.toString());
                 AppShortcutFragment.this.startActivity(i);
@@ -213,7 +236,6 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
         public boolean onLongClick(View view){
             if(cLayout.isSelectingMode()){ return true; }
             cLayout.setSelectingMode(true);
-            mSelectedApp.clear();
 
             shortcutFabOnClickListener = new View.OnClickListener() {
                 @Override
@@ -233,14 +255,14 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
         float moveFromY;
         @Override
         public boolean onTouch(View view, MotionEvent ev) {
-            boolean consume = true;
+            boolean consume = false;
             ImageView button = (ImageView) view;
             int action = ev.getAction();
 
-            if (action == MotionEvent.ACTION_DOWN) {
+            if (action == MotionEvent.ACTION_DOWN && !cLayout.isSelectingMode()) {
+                view.setBackground(new BitmapDrawable(getResources(), MainActivity.appList.get((int) view.getTag()).icons.get(2)));
                 moveFromX = ev.getX();
                 moveFromY = ev.getY();
-                consume = false;
             }
 
             if (action == MotionEvent.ACTION_MOVE){
@@ -249,10 +271,10 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
                 //cLayout.moveButton(view, moveToX-moveFromX, moveToY-moveFromY);
             }
 
-            if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
-                cLayout.setRotateEnable(true);
-                button.setBackground(null);
-                consume = false;
+            if ((action == MotionEvent.ACTION_UP && !cLayout.isSelectingMode()) || action == MotionEvent.ACTION_CANCEL) {
+                if (!cLayout.isSelectingMode()) {
+                    button.setBackground(null);
+                }
             }
             return consume;
         }

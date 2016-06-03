@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     private ArrayList<Integer> mCandidates = new ArrayList<>();
     public static List<AppShortInfo> appList;
 
-    String lastTag = "last";
 
     //public View.OnClickListener mainFabOnClickListener;
     public class AppShortInfo {
@@ -137,7 +136,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         }
 
         if (vacanciesList == null && candidatesList == null){
-            Log.d(LOG_TAG, "retrieving app data");
             for (ResolveInfo RI : mLaunchableApps){
                 if (MainActivity.appList.size()>23){
                     break;
@@ -160,7 +158,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     @Override
     public void onFragmentInteraction(String tag, int action) {
+        String LOG_DEBUG = "OnFragmentInteraction";
         FragmentManager fm = getSupportFragmentManager();
+        Log.d(LOG_DEBUG, tag);
         if (action == FRG_ACTION_LISTENER_UPDATE){
             setFabClickListener();
         }
@@ -190,9 +190,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                     break;
                 }
         }
-
-        Log.d(LOG_TAG, "fragment send:" + tag);
-
 
     }
 
@@ -310,10 +307,10 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
         List<Bitmap> icons = new ArrayList<>();
         Paint ptBlur = new Paint();
-
-        ptBlur.setMaskFilter(new BlurMaskFilter(25, BlurMaskFilter.Blur.OUTER));
+        ptBlur.setMaskFilter(new BlurMaskFilter(icon.getWidth()*0.15f, BlurMaskFilter.Blur.OUTER));
         int[] offsetXY = new int[2];
         Bitmap backLight = icon.extractAlpha(ptBlur, offsetXY);
+
 
         Paint ptAlphaColor = new Paint();
 
@@ -367,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public Fragment getCurrentFragment(){
 
         if (fm.getBackStackEntryCount() == 0){ return null;}
-        //Log.d(LOG_TAG,fm.getBackStackEntryAt(fm.getBackStackEntryCount()-1).getName());
+        Log.d(LOG_TAG,"Name: " + fm.getBackStackEntryAt(fm.getBackStackEntryCount()-1).getName());
         return fm.findFragmentByTag(fm.getBackStackEntryAt(fm.getBackStackEntryCount()-1).getName());
 
     }

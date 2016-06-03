@@ -3,11 +3,14 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_gravity="center"
     android:clickable="true"
     android:scaleType="fitCenter"
     android:adjustViewBounds="true"
-    android:layout_gravity="center"
     android:visibility="invisible"
+    android:maxHeight="48dp"
+    android:minHeight="48dp"
+    android:maxWidth="48dp"
     >
 
 </ImageView>

@@ -77,6 +77,7 @@ public class AppChooserFragment extends Fragment implements MainActivity.Listene
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_app_chooser, container, false);
 
         mTableLayout = (TableLayout) rootView.findViewById(R.id.app_chooser_audition);
@@ -133,7 +134,9 @@ public class AppChooserFragment extends Fragment implements MainActivity.Listene
         } else {return;}
         Row.addView(view, col);
         TableRow.LayoutParams params = (TableRow.LayoutParams) view.getLayoutParams();
-        view.setBackgroundColor(0xFFFFFFF);
+
+        //view.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        //view.setLayoutParams(params);
         Log.d(LOG_TAG,"add to candidate: " + params.toString());
         view.setVisibility(View.VISIBLE);
     }
