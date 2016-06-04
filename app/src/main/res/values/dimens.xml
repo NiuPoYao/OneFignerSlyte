@@ -11,4 +11,5 @@
     <dimen name="app_chooser_padding">12dp</dimen>
     <dimen name="app_chooser_candidate_margin">12dp</dimen>
     <dimen name="app_shortcut_max_height">42dp</dimen>
+    <dimen name="toolbar_height">42dp</dimen>
 </resources>

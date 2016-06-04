@@ -1,5 +1,8 @@
 package xniuniux.onefignerslyte;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.WallpaperManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -22,12 +25,15 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,6 +59,14 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     private ArrayList<ResolveInfo> mLaunchableApps;
 
     private FloatingActionButton fab;
+    private boolean isMBincreasing = true;
+    private boolean isMRincreasing = true;
+    private GestureDetector fabGestureDetector;
+    private GestureDetector MainGestureDetector;
+
+    private boolean dragMode = false;
+    private int MainWidth;
+    private int MainHeight;
 
     private ArrayList<Integer> mVacancies = new ArrayList<>();
     private ArrayList<Integer> mCandidates = new ArrayList<>();
@@ -75,6 +89,10 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                 WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         fab = (FloatingActionButton) findViewById(R.id.main_fab);
+        fab.setOnTouchListener(fabOnTouchListener);
+        fabGestureDetector = new GestureDetector(this, new fabGestureListener());
+
+        MainGestureDetector = new GestureDetector(this ,new MainGestureListener());
 
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
         Drawable wallpaperDrawable = wallpaperManager.getDrawable();
@@ -94,11 +112,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         });
 
         //setSupportActionBar(toolbar);
-
-        if (fab != null) {
-            fab.setOnClickListener(mainFabOnClickListener);
-        }
-
 
 
         Intent i = new Intent(Intent.ACTION_MAIN, null);
@@ -194,6 +207,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     @Override
+    public void onResume(){
+        super.onResume();
+        setFabClickListener();
+    }
+
+    @Override
     public void onPause(){
         super.onPause();
     }
@@ -267,7 +286,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
         @Override
         public int getCount() {
-            // Show 3 total pages.
             return pageNum;
         }
 
@@ -285,6 +303,18 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         }
     }
 
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        this.onTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev){
+        Log.d(LOG_TAG,"onTouchEvnet: " + ev.toString());
+        MainGestureDetector.onTouchEvent(ev);
+        return false;
+    }
 
     public class getIconSet extends AsyncTask<Object, Void, Void> {
 
@@ -299,8 +329,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             appInfo.icons = highlightImage(((BitmapDrawable) icon).getBitmap());
             return null;
         }
-
-
     }
 
     public List<Bitmap> highlightImage(Bitmap icon) {
@@ -342,6 +370,80 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         return icons;
     }
 
+    public View.OnTouchListener fabOnTouchListener = new View.OnTouchListener() {
+        float moveFromX;
+        float moveFromY;
+        float cumulateMovingThread = 0;
+        ViewGroup.MarginLayoutParams lp;
+        int mr;
+        int mb;
+
+        @Override
+        public boolean onTouch(View view, MotionEvent ev) {
+            fabGestureDetector.onTouchEvent(ev);
+            boolean consume = false;
+            int action = ev.getAction();
+            lp = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
+            mr = lp.rightMargin;
+            mb = lp.bottomMargin;
+
+            if (action == MotionEvent.ACTION_DOWN) {
+                cumulateMovingThread = 0;
+                moveFromX = ev.getX();
+                moveFromY = ev.getY();
+            }
+
+            if (action == MotionEvent.ACTION_MOVE){
+
+                float moveToX = ev.getX();
+                float moveToY = ev.getY();
+                if (!dragMode){
+                    if ((cumulateMovingThread > fab.getWidth()/2)) {
+                        dragMode = true;
+                    }
+                    cumulateMovingThread += Math.abs(moveToX - moveFromX)
+                            + Math.abs(moveToY - moveFromY);
+                }
+                isMRincreasing = moveToX < moveFromX;
+                isMBincreasing = moveToY < moveFromY;
+                setFabMarginRight((int) (mr + moveFromX-moveToX));
+                setFabMarginBottom((int) (mb + moveFromY-moveToY));
+                consume = false;
+            }
+
+            if (action == MotionEvent.ACTION_UP  || action == MotionEvent.ACTION_CANCEL) {
+                if (dragMode){
+                    consume = true;
+                    dragMode = false;
+                }
+            }
+            return consume;
+        }
+    };
+
+    private class fabGestureListener extends GestureDetector.SimpleOnGestureListener {
+        String LOG_TAG = "gesture";
+
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float vX, float vY){
+            Log.d(LOG_TAG,"onfling");
+            float absDMR = Math.abs(vX/3);
+            float absDMB = Math.abs(vY/3);
+            float dmr = isMRincreasing? absDMR : -absDMR;
+            float dmb = isMBincreasing? absDMB : -absDMB;
+            fabMoveAnimator((int) dmr, (int) dmb, 333);
+            return true;
+        }
+    }
+
+    private class MainGestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public  boolean onDoubleTap(MotionEvent e){
+            fabBackAnimator();
+            return false;
+        }
+    }
+
     public void setFabClickListener(){
         Fragment frg = getCurrentFragment();
         if (frg == null){
@@ -369,9 +471,76 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     }
 
+    public void setFabMarginRight(int d ){
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
+        lp.rightMargin = d;
+        fab.setLayoutParams(lp);
+    }
+
+    public void setFabMarginBottom(int d){
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
+        lp.bottomMargin = d;
+        fab.setLayoutParams(lp);
+    }
+
+    public void fabMoveAnimator(int dmr, int dmb, int duration){
+        MainWidth = findViewById(R.id.main_content).getWidth();
+        MainHeight = findViewById(R.id.main_content).getHeight();
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
+        int halfW = fab.getWidth()/2;
+        int halfH = fab.getHeight()/2;
+        int mr = lp.rightMargin;
+        int mb = lp.bottomMargin;
+        int newMr = mr + dmr;
+        int newMb = mb + dmb;
+        newMr = Math.max(newMr, -halfW);
+        newMr = Math.min(newMr, MainWidth-halfW);
+        newMb = Math.max(newMb, -halfH);
+        newMb = Math.min(newMb, MainHeight-halfH);
+        AnimatorSet animaSet = new AnimatorSet();
+        ArrayList<Animator> animaList = new ArrayList<>();
+        Animator anima;
+        anima = ObjectAnimator.ofInt(this, "FabMarginRight", mr,newMr);
+        animaList.add(anima);
+        anima = ObjectAnimator.ofInt(this, "FabMarginBottom", mb,newMb);
+        animaList.add(anima);
+        animaSet.playTogether(animaList);
+        animaSet.setDuration(duration).setInterpolator(new DecelerateInterpolator());
+        animaSet.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) { }
+            @Override
+            public void onAnimationEnd(Animator animator) { fab.show(); }
+            @Override
+            public void onAnimationCancel(Animator animator) { }
+            @Override
+            public void onAnimationRepeat(Animator animator) { }
+        });
+        animaSet.start();
+    }
+
+    public void fabBackAnimator(){
+        float density = getResources().getDisplayMetrics().density;
+
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
+        int mr = lp.rightMargin;
+        int mb = lp.bottomMargin;
+        float newMr = 16 * density + 0.5f;
+        float newMb = 64 * density + 0.5f;
+        AnimatorSet animaSet = new AnimatorSet();
+        ArrayList<Animator> animaList = new ArrayList<>();
+        Animator anima;
+        anima = ObjectAnimator.ofInt(this, "FabMarginRight", mr, (int) newMr);
+        animaList.add(anima);
+        anima = ObjectAnimator.ofInt(this, "FabMarginBottom", mb, (int) newMb);
+        animaList.add(anima);
+        animaSet.playTogether(animaList);
+        animaSet.setDuration(333).setInterpolator(new DecelerateInterpolator());
+        animaSet.start();
+    }
 
     public interface ListenerHolder{
-        public View.OnClickListener getClickListener();
+        View.OnClickListener getClickListener();
     }
 }
 

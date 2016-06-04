@@ -13,4 +13,5 @@
 
     <color name="pressed_highlight">#FFFFFFFF</color>
     <color name="long_pressed_highlight">#FFFFCC66</color>
+    <color name="fab_background">#55FFFFFF</color>
 </resources>

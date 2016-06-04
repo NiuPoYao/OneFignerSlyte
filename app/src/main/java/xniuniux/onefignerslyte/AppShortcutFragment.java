@@ -72,8 +72,6 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
 
     }
 
-
-
     @Override
     public void onStart(){
         super.onStart();
@@ -101,12 +99,10 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
             ImageView button;
             if ( cLayout.getChildCount() > i ){
                 button = (ImageView) cLayout.getChildAt(i);
-                Log.d(LOG_TAG,"no add view");
             } else {
                 button = (ImageView) LayoutInflater.from(getContext()).
                         inflate(R.layout.element_app_shortcut, null);
                 cLayout.addView(button);
-                Log.d(LOG_TAG,"add view");
                 button.setOnClickListener(onClickListener);
                 button.setOnLongClickListener(onLongClickListener);
                 button.setOnTouchListener(onTouchListener);
