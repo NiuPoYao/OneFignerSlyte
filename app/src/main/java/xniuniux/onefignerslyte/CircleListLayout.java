@@ -229,7 +229,7 @@ public class CircleListLayout extends ViewGroup {
 
         }
         mSwitchAnimator.playTogether(animaList);
-        mSwitchAnimator.setDuration(100).setInterpolator(new DecelerateInterpolator());
+        mSwitchAnimator.setDuration(200).setInterpolator(new DecelerateInterpolator());
         mSwitchAnimator.start();
 
         updateButtonsState();
@@ -245,9 +245,9 @@ public class CircleListLayout extends ViewGroup {
     public void setChildAlpha(int a){ this.mChildAlpha = a; }
     public void setChildAlphaSecond(int a){ this.mChildAlphaSecond = a; }
     public void setChildAlphaThird(int a){ this.mChildAlphaThird = a; }
-    public void setChildElevate(int e){ this.mChildElevate = e; }
-    public void setChildElevateSecond(int e){ this.mChildElevateSecond = e; }
-    public void setChildElevateThird(int e){ this.mChildElevateThird = e;}
+    public void setChildElevate(float e){ this.mChildElevate = e; }
+    public void setChildElevateSecond(float e){ this.mChildElevateSecond = e; }
+    public void setChildElevateThird(float e){ this.mChildElevateThird = e;}
     public void setCurrentAngle(float angle){
         mClockwise = angle > mCurrentAngle;
         mCurrentAngle = angle;

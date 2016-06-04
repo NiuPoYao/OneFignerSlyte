@@ -17,6 +17,8 @@ import android.widget.BaseAdapter;
 import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -33,7 +35,7 @@ public class AppChooserFragment extends Fragment implements MainActivity.Listene
     private View.OnClickListener chooserFabOnClickListener;
 
     private Context mContext;
-    private GridLayout mCandidatesLayout;
+    private TableLayout mTableLayout;
     private PackageManager mPm;
     private List<ResolveInfo> mLaunchableAppsRI;
 
@@ -75,9 +77,10 @@ public class AppChooserFragment extends Fragment implements MainActivity.Listene
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_app_chooser, container, false);
 
-        mCandidatesLayout = (GridLayout) rootView.findViewById(R.id.app_chooser_candidate);
+        mTableLayout = (TableLayout) rootView.findViewById(R.id.app_chooser_audition);
 
         for (int i = 0; i < mVacancies.size(); i++){
             int pos = mVacancies.get(i);
@@ -108,7 +111,6 @@ public class AppChooserFragment extends Fragment implements MainActivity.Listene
     private AdapterView.OnItemClickListener mAppClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
-            GridView gv = (GridView) adapterView;
             if ( mCandidates.size() < mVacancies.size()){
                 mCandidates.add(pos);
                 ImageView iv = (ImageView) LayoutInflater.from(mContext).inflate(R.layout.element_app_shortcut,null);
@@ -122,17 +124,20 @@ public class AppChooserFragment extends Fragment implements MainActivity.Listene
     };
 
     public void addToCandidates(ImageView view, int row, int col){
-        mCandidatesLayout.addView(view);
-        GridLayout.LayoutParams params = (GridLayout.LayoutParams) view.getLayoutParams();
-        Log.d(LOG_TAG,"add to candidate: " + params.toString());
-        params.setGravity(Gravity.FILL);
-        params.rowSpec = GridLayout.spec(row);
-        params.columnSpec = GridLayout.spec(col);
+
+        TableRow Row;
+
+        if( row == 0 ){
+            Row  = (TableRow) mTableLayout.findViewById(R.id.app_chooser_vacancies);
+        } else if( row == 1){
+            Row  = (TableRow) mTableLayout.findViewById(R.id.app_chooser_candidates);
+        } else {return;}
+        Row.addView(view, col);
         view.setVisibility(View.VISIBLE);
     }
 
     public void removeCandidates(int row, int col){
-        //mCandidatesLayout.re
+        //mTableLayout.re
         Log.d(LOG_TAG,"remove candidate: " + row + ", " + col);
     }
 
@@ -227,14 +232,4 @@ public class AppChooserFragment extends Fragment implements MainActivity.Listene
         return chooserFabOnClickListener;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     **/
 }
