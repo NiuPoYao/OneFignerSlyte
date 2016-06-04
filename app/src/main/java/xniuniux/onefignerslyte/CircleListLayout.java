@@ -81,9 +81,9 @@ public class CircleListLayout extends ViewGroup {
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         int length = Math.min(widthSize, heightSize);
 
-        mRadius = length * 0.33f;
-        mRadiusSecond = mRadius * 0.63f;
-        mRadiusThird = mRadius * 1.37f;
+        mRadius = length * 0.3f;
+        mRadiusSecond = mRadius * 0.66f;
+        mRadiusThird = mRadius * 1.34f;
 
         mChildWidth =(int) Math.round( mRadius * 0.8 * Math.sin(mDeltaAngle) );
         mChildWidthSecond = mChildWidth /2;

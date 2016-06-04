@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="bottom|end"
     android:layout_marginBottom="@dimen/toolbar_height"
-    android:background="@color/colorWhiteTrans"
+    android:background="@color/colorGrayTrans"
     tools:context="xniuniux.onefignerslyte.AppShortcutFragment"
     android:paddingStart="@dimen/app_list_side_margin"
     android:paddingEnd="@dimen/app_list_side_margin">
@@ -17,7 +17,6 @@
         android:id="@+id/circle_list_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorWhiteTrans"
         android:layout_gravity="center"/>
 
     <ImageView
