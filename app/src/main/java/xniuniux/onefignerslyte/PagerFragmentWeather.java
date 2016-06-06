@@ -14,24 +14,23 @@ import android.view.ViewGroup;
  * create an instance of this fragment.
  */
 public class PagerFragmentWeather extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private static final String ARG_LOCATION = "location";
+    private static final String ARG_UNIT = "unit";
+
+    private String mLocation;
+    private int mUnit;
 
 
     public PagerFragmentWeather() {
         // Required empty public constructor
     }
 
-    public static PagerFragmentWeather newInstance(String param1, String param2) {
+    public static PagerFragmentWeather newInstance(String location, int unit) {
         PagerFragmentWeather fragment = new PagerFragmentWeather();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_LOCATION, location);
+        args.putInt(ARG_UNIT, unit);
         fragment.setArguments(args);
         return fragment;
     }
@@ -40,8 +39,8 @@ public class PagerFragmentWeather extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            mLocation = getArguments().getString(ARG_LOCATION);
+            mUnit = getArguments().getInt(ARG_UNIT);
         }
     }
 
@@ -49,7 +48,8 @@ public class PagerFragmentWeather extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_pager_weather, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_section, container, false);
+        
 
         return rootView;
     }
