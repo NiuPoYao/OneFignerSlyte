@@ -7,7 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.view.ViewTreeObserver;
 
 
 public class SectionFragment extends Fragment {
@@ -33,11 +33,24 @@ public class SectionFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_section, container, false);
-        View bodyView = rootView.findViewById(R.id.pager_body);
-        View bannerView = rootView.findViewById(R.id.pager_banner);
-        ViewGroup.LayoutParams params =  bodyView.getLayoutParams();
-        Log.d(LOG_TAG, " " + rootView.getWidth() );
+        final View rootView = inflater.inflate(R.layout.fragment_section, container, false);
+        ViewTreeObserver vto = rootView.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                rootView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                View bannerView = rootView.findViewById(R.id.pager_banner);
+                View bodyView = rootView.findViewById(R.id.pager_body);
+                int longSide = Math.max(rootView.getWidth(),rootView.getHeight());
+                int shortSide = Math.min(rootView.getWidth(),rootView.getHeight());
+
+                Log.d(LOG_TAG, longSide + " " + shortSide + " " + bodyView.getHeight());
+
+                bodyView.measure(View.MeasureSpec.makeMeasureSpec(shortSide, View.MeasureSpec.EXACTLY)
+                    ,View.MeasureSpec.makeMeasureSpec(shortSide, View.MeasureSpec.EXACTLY));
+                Log.d(LOG_TAG, longSide + " " + shortSide + " " + bodyView.getHeight());
+            }
+        });
         return rootView;
     }
 }
