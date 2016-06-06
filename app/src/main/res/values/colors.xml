@@ -11,7 +11,7 @@
 
     <color name="black_overlay">#22000000</color>
 
-    <color name="pressed_highlight">#FFFFFFFF</color>
+    <color name="pressed_highlight">#FF00aa00</color>
     <color name="long_pressed_highlight">#FFFFCC66</color>
     <color name="fab_background">#55FFFFFF</color>
 </resources>

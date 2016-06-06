@@ -50,6 +50,10 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public static final int FRG_ACTION_CONFIRM= 2;
     public static final int FRG_ACTION_LISTENER_UPDATE= 3;
 
+    /** Used to determine the pager style*/
+    public static final int PAGER_STYLE_EMPTY = 0;
+    public static final int PAGER_STYLE_WEATHER = 1;
+
     private FragmentManager fm;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
@@ -311,7 +315,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     @Override
     public boolean onTouchEvent(MotionEvent ev){
-        Log.d(LOG_TAG,"onTouchEvnet: " + ev.toString());
         MainGestureDetector.onTouchEvent(ev);
         return false;
     }
@@ -426,12 +429,11 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float vX, float vY){
-            Log.d(LOG_TAG,"onfling");
             float absDMR = Math.abs(vX/3);
             float absDMB = Math.abs(vY/3);
             float dmr = isMRincreasing? absDMR : -absDMR;
             float dmb = isMBincreasing? absDMB : -absDMB;
-            fabMoveAnimator((int) dmr, (int) dmb, 333);
+            fabFlingAnimator((int) dmr, (int) dmb, 333);
             return true;
         }
     }
@@ -447,7 +449,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public void setFabClickListener(){
         Fragment frg = getCurrentFragment();
         if (frg == null){
-            Log.d(LOG_TAG,"frg is null");
             fab.setOnClickListener(this.mainFabOnClickListener);
             if ( !fab.isShown() ){fab.show();}
             return;
@@ -466,7 +467,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public Fragment getCurrentFragment(){
 
         if (fm.getBackStackEntryCount() == 0){ return null;}
-        Log.d(LOG_TAG,"Name: " + fm.getBackStackEntryAt(fm.getBackStackEntryCount()-1).getName());
         return fm.findFragmentByTag(fm.getBackStackEntryAt(fm.getBackStackEntryCount()-1).getName());
 
     }
@@ -483,7 +483,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         fab.setLayoutParams(lp);
     }
 
-    public void fabMoveAnimator(int dmr, int dmb, int duration){
+    public void fabFlingAnimator(int dmr, int dmb, int duration){
         MainWidth = findViewById(R.id.main_content).getWidth();
         MainHeight = findViewById(R.id.main_content).getHeight();
         ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();

@@ -1,13 +1,21 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    tools:context="xniuniux.onefignerslyte.PagerFragmentWeather"
+    android:id="@+id/pager_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="xniuniux.onefignerslyte.PagerFragmentWeather">
+    android:orientation="vertical">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <RelativeLayout
+        android:id="@+id/pager_banner"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:background="@color/colorWhite"/>
 
-</FrameLayout>
+    <RelativeLayout
+        android:id="@+id/pager_body"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorWhite"/>
+
+</LinearLayout>

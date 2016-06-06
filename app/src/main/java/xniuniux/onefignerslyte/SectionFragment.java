@@ -3,6 +3,7 @@ package xniuniux.onefignerslyte;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +12,7 @@ import android.widget.TextView;
 
 public class SectionFragment extends Fragment {
 
-
+    private String LOG_TAG = "pagerFragment";
     private static final String ARG_SECTION_NUMBER = "section_number";
 
     public SectionFragment() {
@@ -33,8 +34,10 @@ public class SectionFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_section, container, false);
-        TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-        textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+        View bodyView = rootView.findViewById(R.id.pager_body);
+        View bannerView = rootView.findViewById(R.id.pager_banner);
+        ViewGroup.LayoutParams params =  bodyView.getLayoutParams();
+        Log.d(LOG_TAG, " " + rootView.getWidth() );
         return rootView;
     }
 }
