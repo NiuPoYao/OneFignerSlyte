@@ -69,8 +69,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     private GestureDetector MainGestureDetector;
 
     private boolean dragMode = false;
-    private int MainWidth;
-    private int MainHeight;
+    public int MainWidth;
+    public int MainHeight;
 
     private ArrayList<Integer> mVacancies = new ArrayList<>();
     private ArrayList<Integer> mCandidates = new ArrayList<>();

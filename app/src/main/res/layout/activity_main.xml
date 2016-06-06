@@ -17,7 +17,7 @@
         android:theme="@style/AppTheme.AppBarOverlay">
     </android.support.design.widget.AppBarLayout-->
 
-    <android.support.v7.widget.Toolbar
+    <!--android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
@@ -26,7 +26,7 @@
         android:layout_gravity="bottom"
         app:popupTheme="@style/AppTheme.PopupOverlay">
 
-    </android.support.v7.widget.Toolbar>
+    </android.support.v7.widget.Toolbar-->
 
     <android.support.v4.view.ViewPager
         android:id="@+id/container"
