@@ -42,6 +42,7 @@ public class PagerFragmentWeather extends Fragment {
             mLocation = getArguments().getString(ARG_LOCATION);
             mUnit = getArguments().getInt(ARG_UNIT);
         }
+
     }
 
     @Override
@@ -53,5 +54,8 @@ public class PagerFragmentWeather extends Fragment {
 
         return rootView;
     }
+
+
+
 
 }
