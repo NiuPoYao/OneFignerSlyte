@@ -63,7 +63,7 @@ public class SectionFragment extends Fragment {
             BufferedReader reader = null;
             String forecastJsonStr = null;
 
-            final String preUrl = "http://http://api.wunderground.com/api/";
+            final String preUrl = "http://api.wunderground.com/api/";
             Uri builtUri = Uri.parse(preUrl).buildUpon()
                     .appendPath(BuildConfig.WUNDERGROUND_API_KEY)
                     .appendPath("hourly")
@@ -181,14 +181,14 @@ public class SectionFragment extends Fragment {
             forecastData.add(qpf);
             forecastData.add(pop);
 
-            Log.d(LOG_TAG, hours.toString());
-            Log.d(LOG_TAG, temps.toString());
-            Log.d(LOG_TAG, humidities.toString());
-            Log.d(LOG_TAG, qpf.toString());
-            Log.d(LOG_TAG, pop.toString());
+            Log.d(LOG_TAG, hours[10].toString());
+            Log.d(LOG_TAG, temps[10].toString());
+            Log.d(LOG_TAG, humidities[10].toString());
+            Log.d(LOG_TAG, qpf[10].toString());
+            Log.d(LOG_TAG, pop[10].toString());
 
-            Log.d(LOG_TAG, dates.toString());
-            Log.d(LOG_TAG, forecasts.toString());
+            Log.d(LOG_TAG, dates[10].toString());
+            Log.d(LOG_TAG, forecasts[10].toString());
 
         }
 
