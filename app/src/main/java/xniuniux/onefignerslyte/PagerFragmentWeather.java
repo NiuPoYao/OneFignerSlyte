@@ -49,7 +49,7 @@ public class PagerFragmentWeather extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_section, container, false);
-        
+
 
         return rootView;
     }
