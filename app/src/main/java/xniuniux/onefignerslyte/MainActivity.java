@@ -265,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         public final ArrayList<Fragment> fragments = new ArrayList<>();
-        public int pageNum = 5;
+        public int pageNum = 1;
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -433,7 +433,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             float absDMB = Math.abs(vY/3);
             float dmr = isMRincreasing? absDMR : -absDMR;
             float dmb = isMBincreasing? absDMB : -absDMB;
-            fabFlingAnimator((int) dmr, (int) dmb, 333);
+            fabFlingAnimator((int) dmr, (int) dmb, 120);
             return true;
         }
     }

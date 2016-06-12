@@ -20,6 +20,7 @@ android {
 
     buildTypes.each {
         it.buildConfigField 'String', 'WUNDERGROUND_API_KEY', '"3bb19f596abfe23a"'
+        it.buildConfigField 'String', 'NYTIMES_TOP_STORY_API_KEY', '"3e37ee20258d46fcbc173368ee67b7ee"'
     }
 }
 

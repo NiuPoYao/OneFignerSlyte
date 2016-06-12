@@ -1,6 +1,7 @@
 package xniuniux.onefignerslyte;
 
 
+import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -18,9 +19,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 public class SectionFragment extends Fragment {
@@ -28,13 +31,11 @@ public class SectionFragment extends Fragment {
     private String LOG_TAG = "pagerFragment";
     private static final String ARG_SECTION_NUMBER = "section_number";
 
+    private LineAndBarChartView weatherChart;
+
     public SectionFragment() {
     }
 
-    /**
-     * Returns a new instance of this fragment for the given section
-     * number.
-     */
     public static SectionFragment newInstance(int sectionNumber) {
         SectionFragment fragment = new SectionFragment();
         Bundle args = new Bundle();
@@ -47,18 +48,20 @@ public class SectionFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_section, container, false);
+        weatherChart = (LineAndBarChartView) rootView.findViewById(R.id.weather_stat_chart);
         new FetchWeather().execute();
         return rootView;
     }
 
 
-    public class FetchWeather extends AsyncTask<Void, Void, Void> {
+
+    public class FetchWeather extends AsyncTask<Void, Void, ArrayList<Object>> {
 
         String unit = "metric";
-        String unitTempSymbol = "\u2109C";
+        String unitTempSymbol = unit.equals("metric") ? "\u2103":"\u2109";
 
         @Override
-        protected Void doInBackground(Void...params){
+        protected ArrayList<Object> doInBackground(Void...params){
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
             String forecastJsonStr = null;
@@ -76,7 +79,6 @@ public class SectionFragment extends Fragment {
 
             try {
                 URL url = new URL(builtUri.toString());
-                Log.d(LOG_TAG, "URL: " + url.toString());
 
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -119,8 +121,7 @@ public class SectionFragment extends Fragment {
             }
 
             try {
-                Log.d(LOG_TAG, forecastJsonStr);
-                getWeatherDataFromJson(forecastJsonStr);
+                return getWeatherDataFromJson(forecastJsonStr);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -128,7 +129,7 @@ public class SectionFragment extends Fragment {
 
         }
 
-        private void getWeatherDataFromJson(String forecastJsonStr)
+        private ArrayList<Object> getWeatherDataFromJson(String forecastJsonStr)
                 throws JSONException {
             JSONObject forecastJson = new JSONObject(forecastJsonStr);
 
@@ -137,12 +138,13 @@ public class SectionFragment extends Fragment {
 
             String city = locationJson.getString("city");
 
-            int dataPointsNum = forecastJson.length();
-            if (dataPointsNum == 0){ return; }
+            int dataPointsNum = forecastJsonArray.length();
+            if (dataPointsNum == 0){ return null; }
+
 
             String[] dates = new String[dataPointsNum];
             String[] forecasts = new String[dataPointsNum];
-            Integer[] hours = new Integer[dataPointsNum];
+            String[] hours = new String[dataPointsNum];
             Integer[] temps = new Integer[dataPointsNum];
             Integer[] humidities = new Integer[dataPointsNum];
             Integer[] qpf = new Integer[dataPointsNum];
@@ -151,7 +153,7 @@ public class SectionFragment extends Fragment {
 
             for (int i = 0; i < dataPointsNum ; i++){
                 String hour, date, day, temperature, condition, humidity,
-                       quantatitivePrecipitationForecast, probabilityOfPrecipitation;
+                       quantitativePrecipitationForecast, probabilityOfPrecipitation;
 
                 JSONObject hourlyForecastJson = forecastJsonArray.getJSONObject(i);
                 JSONObject FCTTIME = hourlyForecastJson.getJSONObject("FCTTIME");
@@ -162,38 +164,41 @@ public class SectionFragment extends Fragment {
                 temperature = hourlyForecastJson.getJSONObject("temp").getString(unit);
                 condition  = hourlyForecastJson.getString("condition");
                 humidity = hourlyForecastJson.getString("humidity");
-                quantatitivePrecipitationForecast = hourlyForecastJson.getJSONObject("qpf").getString(unit);
+                quantitativePrecipitationForecast = hourlyForecastJson.getJSONObject("qpf").getString(unit);
                 probabilityOfPrecipitation = hourlyForecastJson.getString("pop");
 
-                dates[i] = date + " (" + day + ") " + " " + hour + ":00 ";
+                dates[i] = date + " (" + day + ") " + hour + ":00 ";
                 forecasts[i] = condition + ", " + temperature + unitTempSymbol;
-                hours[i] = Integer.getInteger(hour);
-                temps[i] = Integer.getInteger(temperature);
-                humidities[i] = Integer.getInteger(humidity);
-                qpf[i] = Integer.getInteger(quantatitivePrecipitationForecast);
-                pop[i] = Integer.getInteger(probabilityOfPrecipitation);
+                hours[i] = hour;
+                temps[i] = Integer.parseInt(temperature);
+                humidities[i] = Integer.parseInt(humidity);
+                qpf[i] = Integer.parseInt(quantitativePrecipitationForecast);
+                pop[i] = Integer.parseInt(probabilityOfPrecipitation);
             }
 
-            ArrayList<Integer[]> forecastData = new ArrayList<>();
+            ArrayList<Object> forecastData = new ArrayList<>();
+            forecastData.add(dates);
+            forecastData.add(forecasts);
             forecastData.add(hours);
             forecastData.add(temps);
             forecastData.add(humidities);
             forecastData.add(qpf);
             forecastData.add(pop);
-
-            Log.d(LOG_TAG, hours[10].toString());
-            Log.d(LOG_TAG, temps[10].toString());
-            Log.d(LOG_TAG, humidities[10].toString());
-            Log.d(LOG_TAG, qpf[10].toString());
-            Log.d(LOG_TAG, pop[10].toString());
-
-            Log.d(LOG_TAG, dates[10].toString());
-            Log.d(LOG_TAG, forecasts[10].toString());
+            return forecastData;
 
         }
 
         @Override
-        protected void onPostExecute(Void v) {
+        protected void onPostExecute(ArrayList<Object> array) {
+
+            weatherChart.mHour.addAll(Arrays.asList( (String[]) array.get(2)) );
+            weatherChart.mTemperature.addAll(Arrays.asList( (Integer[]) array.get(3)) );
+            weatherChart.mHumidity.addAll(Arrays.asList( (Integer[]) array.get(4)) );
+            weatherChart.mQpf.addAll(Arrays.asList( (Integer[]) array.get(5)) );
+            weatherChart.mPop.addAll(Arrays.asList( (Integer[]) array.get(6)) );
+            Log.d(LOG_TAG,"mHour size: " + weatherChart.mHour.size());
+            weatherChart.requestLayout();
+
         }
 
     }

@@ -1,5 +1,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="xniuniux.onefignerslyte.PagerFragmentWeather"
     android:id="@+id/pager_container"
     android:layout_width="match_parent"
@@ -12,14 +13,33 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@color/long_pressed_highlight">
+        android:background="@color/colorGrayTrans">
     </RelativeLayout>
 
     <xniuniux.onefignerslyte.SquareRelativeLayout
         android:id="@+id/pager_body"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/colorWhite"/>
+        android:layout_height="match_parent">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="64dp">
+
+        <xniuniux.onefignerslyte.LineAndBarChartView
+            android:id="@+id/weather_stat_chart"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="24dp"
+            android:paddingTop="24dp"
+            android:scrollbars="none"/>
+
+        </HorizontalScrollView>
+
+
+    </xniuniux.onefignerslyte.SquareRelativeLayout>
 
 
 </LinearLayout>

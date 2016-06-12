@@ -2,6 +2,7 @@ package xniuniux.onefignerslyte;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.RelativeLayout;
 
 public class SquareRelativeLayout extends RelativeLayout{
@@ -20,14 +21,13 @@ public class SquareRelativeLayout extends RelativeLayout{
 
     @Override
     protected void onMeasure(int wms, int hms){
+
         int widthSize = MeasureSpec.getSize(wms);
+        int widthMode = MeasureSpec.getMode(wms);
         int heightSize = MeasureSpec.getSize(hms);
+        int heightMode = MeasureSpec.getMode(hms);
         int length = Math.min(widthSize, heightSize);
-
-        measureChildren(MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST),
-                MeasureSpec.makeMeasureSpec(length, MeasureSpec.AT_MOST));
-
-        setMeasuredDimension(length,length);
+        super.onMeasure(MeasureSpec.makeMeasureSpec(length, widthMode), MeasureSpec.makeMeasureSpec(length, heightMode));
     }
 
 }
