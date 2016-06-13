@@ -226,20 +226,21 @@ public class LineAndBarChartView extends ImageView {
         float perTempHeight = linesDrawHeight/Math.max(( tempMax - Collections.min(mTemperature)), 1);
         float perHumiHeight  = linesDrawHeight/Math.max(( humiMax - Collections.min(mHumidity)), 1);
         float perQpfHeight = contentHeight/qpfMax;
+        float perPopHeight = contentHeight/100;
 
         float toX = perColumnWidth/2 + paddingLeft;
         float toTempY = paddingTop + markerSize/2 + (tempMax - mTemperature.get(0))*perTempHeight;
         float toHumiY = paddingTop + contentHeight/2 + markerSize/2 + (humiMax - mHumidity.get(0))*perHumiHeight;
         float qpfTop = paddingTop + (qpfMax - mQpf.get(0))*perQpfHeight;
-        float popTop = (float) (100 - mPop.get(0))/100;
+        float popTop = paddingTop + (100 - mPop.get(0))*perPopHeight;
 
         tempPath.moveTo( toX, toTempY);
         HumiPath.moveTo( toX, toHumiY);
         canvas.drawCircle(toX,toTempY,markerSize/2,tempMarkerPaint);
         canvas.drawCircle(toX,toHumiY,markerSize/2, HumiMarkerPaint);
 
-        qpfPath.addRect(toX - barWidth/2, qpfTop, toX + barWidth/2, paddingTop + contentHeight + 1, Path.Direction.CW);
-        popPath.addRect(toX - popBarWidth/2, qpfTop + (paddingTop + contentHeight - qpfTop) * popTop, toX + popBarWidth/2, paddingTop + contentHeight, Path.Direction.CW);
+        qpfPath.addRect(toX - barWidth/2, qpfTop, toX - barWidth/4, paddingTop + contentHeight + 1, Path.Direction.CW);
+        popPath.addRect(toX - barWidth/4, popTop, toX + popBarWidth/2, paddingTop + contentHeight + 1, Path.Direction.CW);
 
         canvas.drawText(String.valueOf(mTemperature.get(0)),toX - fontSize/2,toTempY + baseY/2,textPaint);
         canvas.drawText(String.valueOf(mHumidity.get(0)),toX - fontSize/2,toHumiY + baseY/2,textPaint);
@@ -266,11 +267,11 @@ public class LineAndBarChartView extends ImageView {
             //oldHumiY = toHumiY;
 
             qpfTop = (qpfMax - mQpf.get(i))*perQpfHeight + paddingTop;
-            qpfPath.addRect(toX - barWidth/2, qpfTop, toX + barWidth/2, contentHeight + paddingTop + 1, Path.Direction.CW);
+            qpfPath.addRect(toX - barWidth/2, qpfTop, toX - barWidth/4, contentHeight + paddingTop + 1, Path.Direction.CW);
             canvas.drawText(String.valueOf(mQpf.get(i)), toX - barWidth/2 + fontSize/4, contentHeight + paddingTop - fontSize/2, qpfTextPaint);
 
-            popTop = (float) (100 - mPop.get(i))/100;
-            popPath.addRect(toX - popBarWidth/2,qpfTop + (paddingTop + contentHeight - qpfTop) * popTop, toX + popBarWidth/2, paddingTop + contentHeight, Path.Direction.CW);
+            popTop = paddingTop + (100 - mPop.get(i))*perPopHeight;
+            popPath.addRect(toX - barWidth/4, popTop, toX + popBarWidth/2, paddingTop + contentHeight + 1, Path.Direction.CW);
             canvas.drawText(String.valueOf(mPop.get(i)) + "%", toX - barWidth/2 + fontSize/4, contentHeight + paddingTop - fontSize*2, popTextPaint);
 
             canvas.drawText(mHour.get(i),toX - fontSize/2, contentHeight + paddingTop + 1.5f*fontSize, textPaint);

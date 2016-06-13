@@ -24,6 +24,7 @@
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@color/colorBlackTrans"
             android:layout_marginBottom="64dp">
 
         <xniuniux.onefignerslyte.LineAndBarChartView
