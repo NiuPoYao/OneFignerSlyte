@@ -87,6 +87,8 @@ public class PagerFragmentWeatherForecast extends Fragment {
             final String preUrl = "http://api.wunderground.com/api/";
             Uri builtUri = Uri.parse(preUrl).buildUpon()
                     .appendPath(BuildConfig.WUNDERGROUND_API_KEY)
+                    .appendPath("conditions")
+                    .appendPath("forecast")
                     .appendPath("hourly")
                     .appendPath("geolookup")
                     .appendPath("q")
