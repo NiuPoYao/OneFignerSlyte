@@ -10,27 +10,22 @@ import android.view.ViewGroup;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link PagerFragmentWeather#newInstance} factory method to
+ * Use the {@link PagerFragmentEmpty#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PagerFragmentWeather extends Fragment {
+public class PagerFragmentEmpty extends Fragment {
 
-    private static final String ARG_LOCATION = "location";
-    private static final String ARG_UNIT = "unit";
+    private static final String ARG_SECTION_NUMBER = "section_number";
+    private int mSectionNumber;
 
-    private String mLocation;
-    private int mUnit;
-
-
-    public PagerFragmentWeather() {
+    public PagerFragmentEmpty() {
         // Required empty public constructor
     }
 
-    public static PagerFragmentWeather newInstance(String location, int unit) {
-        PagerFragmentWeather fragment = new PagerFragmentWeather();
+    public static PagerFragmentEmpty newInstance(int sectionNumber) {
+        PagerFragmentEmpty fragment = new PagerFragmentEmpty();
         Bundle args = new Bundle();
-        args.putString(ARG_LOCATION, location);
-        args.putInt(ARG_UNIT, unit);
+        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);
         return fragment;
     }
@@ -39,8 +34,7 @@ public class PagerFragmentWeather extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mLocation = getArguments().getString(ARG_LOCATION);
-            mUnit = getArguments().getInt(ARG_UNIT);
+            mSectionNumber = getArguments().getInt(ARG_SECTION_NUMBER);
         }
 
     }

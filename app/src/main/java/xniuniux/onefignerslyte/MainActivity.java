@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public static final int PAGER_STYLE_EMPTY = 0;
     public static final int PAGER_STYLE_WEATHER = 1;
 
+    private ArrayList<Integer> PagerStyle = new ArrayList<>();
     private FragmentManager fm;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     private ArrayList<Integer> mCandidates = new ArrayList<>();
     public static List<AppShortInfo> appList;
 
+    public int pageNum = 2;
 
     //public View.OnClickListener mainFabOnClickListener;
     public class AppShortInfo {
@@ -86,6 +88,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        PagerStyle.add(PAGER_STYLE_WEATHER);
+        PagerStyle.add(PAGER_STYLE_EMPTY);
+
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
@@ -265,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         public final ArrayList<Fragment> fragments = new ArrayList<>();
-        public int pageNum = 1;
+        //public int pageNum = 1;
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -284,8 +289,15 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         @Override
         public Fragment getItem(int position) {
             // getItem is called to instantiate the fragment for the given page.
-            // Return a SectionFragment (defined as a static inner class below).
-            return SectionFragment.newInstance(position + 1);
+            // Return a PagerFragment (defined as a static inner class below).
+            switch (PagerStyle.get(position) ){
+                case PAGER_STYLE_WEATHER:
+                    return PagerFragmentWeatherForecast.newInstance(position + 1);
+                default:
+                    return PagerFragmentEmpty.newInstance(position + 1);
+
+            }
+
         }
 
         @Override

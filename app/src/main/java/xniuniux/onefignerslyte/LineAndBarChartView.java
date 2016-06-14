@@ -210,7 +210,7 @@ public class LineAndBarChartView extends ImageView {
             return;
         }
 
-        contentHeight = contentHeight*0.7f - fontSize;
+        contentHeight = contentHeight - 6*fontSize;
         float bottomSpace = 6*fontSize;
         int sc = canvas.saveLayer(0,0,canvas.getWidth(),canvas.getHeight() ,null, Canvas.ALL_SAVE_FLAG);
         float linesDrawHeight = (contentHeight- bottomSpace)/2 - markerSize;

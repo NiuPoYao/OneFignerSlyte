@@ -5,15 +5,15 @@
     <color name="colorAccent">#2D444444</color>
 
     <color name="colorBlack">#333333</color>
-    <color name="colorBlackTrans">#AA333333</color>
-    <color name="colorGrayTrans">#33000000</color>
+    <color name="colorBlackTrans">#66333333</color>
+    <color name="colorGrayTrans">#DDDDDDDD</color>
     <color name="colorWhiteTrans">#aaffffff</color>
     <color name="colorTransparent">#00000000</color>
 
 
     <color name="color_humidity_marker">#334466</color>
     <color name="color_qpf_bar">#335588</color>
-    <color name="color_qpf_number">#99FFFFFF</color>
+    <color name="color_qpf_number">#FFFFFF</color>
     <color name="color_temp_marker">#CC9911</color>
     <color name="color_pop_bar">#3377AA</color>
 

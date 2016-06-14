@@ -1,7 +1,6 @@
 package xniuniux.onefignerslyte;
 
 
-import android.graphics.Canvas;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -19,36 +18,55 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 
-public class SectionFragment extends Fragment {
+public class PagerFragmentWeatherForecast extends Fragment {
 
     private String LOG_TAG = "pagerFragment";
     private static final String ARG_SECTION_NUMBER = "section_number";
+    private static final String ARG_LOCATION = "location";
+    private static final String ARG_UNIT = "unit";
+
+    private String mLocation;
+    private int mUnit;
+    private int mSectionNumber;
 
     private LineAndBarChartView weatherChart;
 
-    public SectionFragment() {
+    public PagerFragmentWeatherForecast() {
     }
 
-    public static SectionFragment newInstance(int sectionNumber) {
-        SectionFragment fragment = new SectionFragment();
+    public static PagerFragmentWeatherForecast newInstance(int sectionNumber) {
+        PagerFragmentWeatherForecast fragment = new PagerFragmentWeatherForecast();
         Bundle args = new Bundle();
+        /*args.putString(ARG_LOCATION, location);
+        args.putInt(ARG_UNIT, unit);*/
         args.putInt(ARG_SECTION_NUMBER, sectionNumber);
         fragment.setArguments(args);
         return fragment;
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            mLocation = getArguments().getString(ARG_LOCATION);
+            mUnit = getArguments().getInt(ARG_UNIT);
+            mSectionNumber = getArguments().getInt(ARG_SECTION_NUMBER);
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_section, container, false);
-        weatherChart = (LineAndBarChartView) rootView.findViewById(R.id.weather_stat_chart);
+        ViewGroup bodyContainer =  (ViewGroup) rootView.findViewById(R.id.pager_body);
+        View bodyRootView = inflater.inflate(R.layout.pager_body_weather_forecast, bodyContainer, true);
+        weatherChart = (LineAndBarChartView) bodyRootView.findViewById(R.id.weather_stat_chart);
         new FetchWeather().execute();
         return rootView;
     }
