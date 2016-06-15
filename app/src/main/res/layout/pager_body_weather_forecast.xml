@@ -1,22 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<HorizontalScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBlackTrans"
-    android:layout_marginBottom="128dp"
-    android:layout_marginLeft="12dp"
-    android:layout_marginRight="12dp"
-    android:layout_marginTop="12dp"
-    android:scrollbars="none"
-    >
+    android:orientation="vertical"
+    android:padding="12dp">
 
-    <xniuniux.onefignerslyte.LineAndBarChartView
-        android:id="@+id/weather_stat_chart"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:padding="8dp"
-        />
+    <HorizontalScrollView
+        android:id="@+id/scroll_panel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="3"
+        android:background="@color/colorBlackTrans"
+        android:scrollbars="none">
 
-</HorizontalScrollView>
+        <xniuniux.onefignerslyte.LineAndBarChartView
+            android:id="@+id/weather_stat_chart"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            />
+
+    </HorizontalScrollView>
+
+    <RelativeLayout
+        android:id="@+id/bottom_information"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+</LinearLayout>
