@@ -14,6 +14,7 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -294,6 +295,15 @@ public class LineAndBarChartView extends ImageView {
 
     }
 
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev){
+        float action = ev.getX();
+        if (action == MotionEvent.ACTION_UP){
+            //TODO: finish the navigation if it's in the navigation mode
+        }
+        return super.onTouchEvent(ev);
+    }
 
     /**
      * Gets the example string attribute value.
