@@ -31,6 +31,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
     private static final String ARG_LOCATION = "location";
     private static final String ARG_UNIT = "unit";
 
+    private ArrayList<Object> forecastData;
     private String mLocation;
     private int mUnit;
     private int mSectionNumber;
@@ -92,8 +93,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
                     .appendPath("hourly")
                     .appendPath("geolookup")
                     .appendPath("q")
-                    .appendPath("Taiwan")
-                    .appendPath("Taipei.json").build();
+                    .appendPath("25.0,121.5.json").build();
 
             String LOG_TAG = "Weather_Fragment";
 
@@ -196,7 +196,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
                 pop[i] = Integer.parseInt(probabilityOfPrecipitation);
             }
 
-            ArrayList<Object> forecastData = new ArrayList<>();
+            forecastData = new ArrayList<>();
             forecastData.add(dates);
             forecastData.add(forecasts);
             forecastData.add(hours);
