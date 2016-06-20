@@ -89,13 +89,13 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
         }
     }
 
-    public void renewList(ArrayList<Integer> renewList){
+    public void renewList(ArrayList<Integer> newList){
         Log.d(LOG_TAG,"renew list");
-        if (renewList == null || renewList.size() == 0){
-            renewList = new ArrayList<>();
-            for (int i = 0; i < cLayout.getAppShortcutsTotal(); renewList.add(i), i++);
+        if (newList == null || newList.size() == 0){
+            newList = new ArrayList<>();
+            for (int i = 0; i < cLayout.mAppShortcutTotal; newList.add(i), i++);
         }
-        for (int i : renewList) {
+        for (int i : newList) {
             ImageView button;
             if ( cLayout.getChildCount() > i ){
                 button = (ImageView) cLayout.getChildAt(i);
@@ -127,9 +127,9 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
                 final float startY = cLayout.getHeight()/2;
                 int layerSelected = cLayout.mLayerSelected;
                 int appsPerLayer = cLayout.mAppsPerLayer;
-                int childCount = cLayout.getChildCount();
-                for ( int i = 0; i < childCount; i++ ){
-                    final ImageView child = (ImageView) cLayout.getChildAt((i+ appsPerLayer * layerSelected) % childCount);
+                int appsShortcutTotal = cLayout.mAppShortcutTotal;
+                for ( int i = 0; i < appsShortcutTotal; i++ ){
+                    final ImageView child = (ImageView) cLayout.getChildAt((i+ appsPerLayer * layerSelected) % appsShortcutTotal);
                     handler.postDelayed(
                             new Runnable() {
                                 @Override
