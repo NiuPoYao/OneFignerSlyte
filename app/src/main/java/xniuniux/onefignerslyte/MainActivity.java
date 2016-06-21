@@ -25,7 +25,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -65,11 +64,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     private ArrayList<ResolveInfo> mLaunchableApps;
 
     private FloatingActionButton fab;
-    private boolean isMBincreasing = true;
-    private boolean isMRincreasing = true;
+    private boolean isMarginBottomIncreasing = true;
+    private boolean isMarginRightIncreasing = true;
     private GestureDetector fabGestureDetector;
     private GestureDetector MainGestureDetector;
 
+    public int StatusBarHeight;
     private boolean dragMode = false;
     public int MainWidth;
     public int MainHeight;
@@ -95,6 +95,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
+        StatusBarHeight = getStatusBarHeight(this);
+        //Log.d(LOG_TAG, "status bar: " + StatusBarHeight);
+
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
                 WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -110,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         MainView.setBackground(wallpaperDrawable);
 
         mViewPager = (ViewPager) findViewById(R.id.container);
+        mViewPager.setPadding(StatusBarHeight/2, 0, StatusBarHeight/2, 0);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -183,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public void onFragmentInteraction(String tag, int action) {
         String LOG_DEBUG = "OnFragmentInteraction";
         FragmentManager fm = getSupportFragmentManager();
-        Log.d(LOG_DEBUG, tag);
+        //Log.d(LOG_DEBUG, tag);
         if (action == FRG_ACTION_LISTENER_UPDATE){
             setFabClickListener();
         }
@@ -191,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             case "AppShortcutFragment":
                 if (action == FRG_ACTION_KILL){
                     fm.popBackStack();
-                    Log.d(LOG_TAG, fm.getBackStackEntryCount() + "");
+                    //Log.d(LOG_TAG, fm.getBackStackEntryCount() + "");
                     break;
                 }
                 if (action == FRG_ACTION_CHANGE_SHORTCUT){
@@ -420,8 +424,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                     cumulateMovingThread += Math.abs(moveToX - moveFromX)
                             + Math.abs(moveToY - moveFromY);
                 }
-                isMRincreasing = moveToX < moveFromX;
-                isMBincreasing = moveToY < moveFromY;
+                isMarginRightIncreasing = moveToX < moveFromX;
+                isMarginBottomIncreasing = moveToY < moveFromY;
                 setFabMarginRight((int) (mr + moveFromX-moveToX));
                 setFabMarginBottom((int) (mb + moveFromY-moveToY));
                 consume = false;
@@ -444,8 +448,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         public boolean onFling(MotionEvent e1, MotionEvent e2, float vX, float vY){
             float absDMR = Math.abs(vX/3);
             float absDMB = Math.abs(vY/3);
-            float dmr = isMRincreasing? absDMR : -absDMR;
-            float dmb = isMBincreasing? absDMB : -absDMB;
+            float dmr = isMarginRightIncreasing ? absDMR : -absDMR;
+            float dmb = isMarginBottomIncreasing ? absDMB : -absDMB;
             fabFlingAnimator((int) dmr, (int) dmb, 120);
             return true;
         }
@@ -556,10 +560,14 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         View.OnClickListener getClickListener();
     }
 
-    public static int getStatusBarHeight(Context context) {
-        Class<?> c = null;
-        Object obj = null;
-        java.lang.reflect.Field field = null;
+    public int  getStatusBarHeight(){
+        return StatusBarHeight;
+    }
+
+    public int getStatusBarHeight(Context context) {
+        Class<?> c;
+        Object obj;
+        java.lang.reflect.Field field;
         int x = 0;
         int statusBarHeight = 0;
         try {

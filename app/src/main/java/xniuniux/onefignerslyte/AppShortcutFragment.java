@@ -13,7 +13,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,6 +32,7 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     private OnFragmentInteractionListener mInteractionListener;
     private CircleListLayout cLayout;
     private ArrayList<Integer> mSelectedApp = new ArrayList<>();
+    private float density;
 
     private View.OnClickListener shortcutFabOnClickListener;
 
@@ -47,6 +47,7 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        density = getResources().getDisplayMetrics().density;
         if (context instanceof Activity){
             Activity a =(Activity) context;
             mInteractionListener = (OnFragmentInteractionListener) a;
@@ -57,10 +58,14 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(LOG_TAG,"onCreateView");
+        //Log.d(LOG_TAG,"onCreateView");
         // Inflate the layout for this fragment
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_app_shortcut, container, false);
+        View frame = rootView.findViewById(R.id.app_shortcut_container);
+        int statusBarHeight = ((MainActivity) getActivity()).getStatusBarHeight();
+        frame.setPadding(statusBarHeight/2, 0, statusBarHeight/2, 0);
+
         cLayout = (CircleListLayout) rootView.findViewById(R.id.circle_list_layout);
 
         shortcutFabOnClickListener = destroyFabOnClickListener;
@@ -75,13 +80,13 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     @Override
     public void onStart(){
         super.onStart();
-        Log.d(LOG_TAG,"onStart");
+        //Log.d(LOG_TAG,"onStart");
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        Log.d(LOG_TAG,"onResume");
+        //Log.d(LOG_TAG,"onResume");
         if (mSelectedApp != null && mSelectedApp.size()>0 ) {
             renewList(mSelectedApp);
             cLayout.invalidate();
@@ -90,7 +95,7 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     }
 
     public void renewList(ArrayList<Integer> newList){
-        Log.d(LOG_TAG,"renew list");
+        //Log.d(LOG_TAG,"renew list");
         if (newList == null || newList.size() == 0){
             newList = new ArrayList<>();
             for (int i = 0; i < cLayout.mAppShortcutTotal; newList.add(i), i++);
@@ -120,7 +125,7 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                Log.d(LOG_TAG,"Global layout OK!");
+                //Log.d(LOG_TAG,"Global layout OK!");
                 cLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 Handler handler = new Handler();
                 final float startX = cLayout.getWidth()/2;
@@ -261,11 +266,6 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
                 moveFromY = ev.getY();
             }
 
-            if (action == MotionEvent.ACTION_MOVE){
-                float moveToX = ev.getX();
-                float moveToY = ev.getY();
-                //cLayout.moveButton(view, moveToX-moveFromX, moveToY-moveFromY);
-            }
 
             if ((action == MotionEvent.ACTION_UP && !cLayout.isSelectingMode()) || action == MotionEvent.ACTION_CANCEL) {
                 if (!cLayout.isSelectingMode()) {

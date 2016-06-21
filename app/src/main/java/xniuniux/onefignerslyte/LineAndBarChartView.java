@@ -142,7 +142,7 @@ public class LineAndBarChartView extends ImageView {
         popBarPaint.setStyle(Paint.Style.FILL);
         popTextPaint.setColor(ContextCompat.getColor(getContext(), R.color.color_qpf_number));
 
-        textPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorWhiteTrans));
+        textPaint.setColor(ContextCompat.getColor(getContext(), R.color.color_text));
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -162,7 +162,7 @@ public class LineAndBarChartView extends ImageView {
     @Override
     protected void onMeasure(int wms, int hms){
         super.onMeasure(wms,hms);
-        Log.d(LOG_TAG,"SpecSize: width-" + MeasureSpec.getSize(wms) + ", Height-" + MeasureSpec.getSize(hms));
+        //Log.d(LOG_TAG,"SpecSize: width-" + MeasureSpec.getSize(wms) + ", Height-" + MeasureSpec.getSize(hms));
         if (mHour != null){
             dataSize = mHour.size();
         }
@@ -176,7 +176,7 @@ public class LineAndBarChartView extends ImageView {
         popTextPaint.setTextSize(fontSize);
         float width = perColumnWidth*dataSize + getPaddingLeft() + getPaddingRight();
         setMeasuredDimension((int) width, getMeasuredHeight());
-        Log.d(LOG_TAG,"markerSize: " + markerSize + ", getWidth: " + getWidth() + ", mHour size: " + mHour.size());
+        //Log.d(LOG_TAG,"markerSize: " + markerSize + ", getWidth: " + getWidth() + ", mHour size: " + mHour.size());
     }
 
     @Override
@@ -207,12 +207,12 @@ public class LineAndBarChartView extends ImageView {
         }*/
 
         if (mHour == null || mHour.isEmpty()){
-            Log.d(LOG_TAG,"mHour null");
+            //Log.d(LOG_TAG,"mHour null");
             return;
         }
 
-        contentHeight = contentHeight - 6*fontSize;
-        float bottomSpace = 6*fontSize;
+        float bottomSpace = 2 * fontSize;
+        contentHeight = contentHeight - bottomSpace;
         int sc = canvas.saveLayer(0,0,canvas.getWidth(),canvas.getHeight() ,null, Canvas.ALL_SAVE_FLAG);
         float linesDrawHeight = (contentHeight- bottomSpace)/2 - markerSize;
 
@@ -237,7 +237,7 @@ public class LineAndBarChartView extends ImageView {
 
         tempPath.moveTo( toX, toTempY);
         HumiPath.moveTo( toX, toHumiY);
-        canvas.drawCircle(toX,toTempY,markerSize/2,tempMarkerPaint);
+        canvas.drawCircle(toX,toTempY,markerSize/2, tempMarkerPaint);
         canvas.drawCircle(toX,toHumiY,markerSize/2, HumiMarkerPaint);
 
         qpfPath.addRect(toX - barWidth/2, qpfTop, toX - barWidth/4, paddingTop + contentHeight + 1, Path.Direction.CW);
@@ -278,11 +278,11 @@ public class LineAndBarChartView extends ImageView {
             canvas.drawText(mHour.get(i),toX - fontSize/2, contentHeight + paddingTop + 1.5f*fontSize, textPaint);
             //oldX = toX;
         }
-        Log.d(LOG_TAG,"text size: " + textPaint.getTextSize());
+        //Log.d(LOG_TAG,"text size: " + textPaint.getTextSize());
         tempPaint.setXfermode(pdfDstOver);
         HumiPaint.setXfermode(pdfDstOver);
-        canvas.drawPath(tempPath,tempPaint);
-        canvas.drawPath(HumiPath,HumiPaint);
+        canvas.drawPath(tempPath, tempPaint);
+        canvas.drawPath(HumiPath, HumiPaint);
         tempPaint.setXfermode(null);
         HumiPaint.setXfermode(null);
 

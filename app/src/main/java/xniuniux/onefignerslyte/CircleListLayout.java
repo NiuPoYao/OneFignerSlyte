@@ -5,7 +5,6 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
@@ -76,8 +75,9 @@ public class CircleListLayout extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
-        Log.d(LOG_TAG, "on Measure");
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+        //Log.d(LOG_TAG, "on Measure");
+
+        int widthSize = MeasureSpec.getSize(widthMeasureSpec) - getPaddingLeft() - getPaddingRight();
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         int length = Math.min(widthSize, heightSize);
 
@@ -89,8 +89,8 @@ public class CircleListLayout extends ViewGroup {
         mChildWidthSecond = mChildWidth /2;
         mChildWidthThird = mChildWidth /2;
 
-        mRadiusSecond = mRadius - mChildCircleRadius * 1f;
-        mRadiusThird = mRadius + mChildCircleRadius * 1f;
+        mRadiusSecond = mRadius - mChildCircleRadius;
+        mRadiusThird = mRadius + mChildCircleRadius;
 
 
 
@@ -113,7 +113,7 @@ public class CircleListLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean change, int l, int t, int r, int b){
-        Log.d(LOG_TAG,"onLayout");
+        //Log.d(LOG_TAG,"onLayout");
         updateButtonsState();
         setListLayout();
     }
@@ -346,7 +346,7 @@ public class CircleListLayout extends ViewGroup {
         if (action == MotionEvent.ACTION_MOVE && mRotateEnable){
             intercept = this.gestureDetector.onTouchEvent(ev);
         }
-        Log.d(LOG_TAG, intercept + ev.toString());
+        //Log.d(LOG_TAG, intercept + ev.toString());
         return intercept;
     }
 
@@ -358,7 +358,7 @@ public class CircleListLayout extends ViewGroup {
         if (action != MotionEvent.ACTION_DOWN && mRotateEnable){
             consume = this.gestureDetector.onTouchEvent(ev);
         }
-        Log.d(LOG_TAG, consume + ev.toString());
+        //Log.d(LOG_TAG, consume + ev.toString());
         return consume;
     }
 

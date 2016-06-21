@@ -93,7 +93,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
                     .appendPath("hourly")
                     .appendPath("geolookup")
                     .appendPath("q")
-                    .appendPath("25.0,121.5.json").build();
+                    .appendPath("25.039350,121.614756.json").build();
 
             String LOG_TAG = "Weather_Fragment";
 
@@ -157,6 +157,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
             JSONObject locationJson = forecastJson.getJSONObject("location");
 
             String city = locationJson.getString("city");
+            Log.d(LOG_TAG, city);
 
             int dataPointsNum = forecastJsonArray.length();
             if (dataPointsNum == 0){ return null; }
@@ -216,7 +217,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
             weatherChart.mHumidity.addAll(Arrays.asList( (Integer[]) array.get(4)) );
             weatherChart.mQpf.addAll(Arrays.asList( (Integer[]) array.get(5)) );
             weatherChart.mPop.addAll(Arrays.asList( (Integer[]) array.get(6)) );
-            Log.d(LOG_TAG,"mHour size: " + weatherChart.mHour.size());
+            //Log.d(LOG_TAG,"mHour size: " + weatherChart.mHour.size());
             weatherChart.requestLayout();
 
         }
