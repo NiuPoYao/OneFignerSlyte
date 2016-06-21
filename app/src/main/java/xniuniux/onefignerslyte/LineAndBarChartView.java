@@ -14,7 +14,6 @@ import android.support.v4.content.ContextCompat;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -223,7 +222,7 @@ public class LineAndBarChartView extends ImageView {
 
         int tempMax = Collections.max(mTemperature);
         int humiMax = Collections.max(mHumidity);
-        int qpfMax = Math.max(Collections.max(mQpf),10);
+        int qpfMax = Math.max(Collections.max(mQpf),5);
 
         float perTempHeight = linesDrawHeight/Math.max(( tempMax - Collections.min(mTemperature)), 1);
         float perHumiHeight  = linesDrawHeight/Math.max(( humiMax - Collections.min(mHumidity)), 1);
@@ -296,15 +295,6 @@ public class LineAndBarChartView extends ImageView {
 
     }
 
-
-    @Override
-    public boolean onTouchEvent(MotionEvent ev){
-        float action = ev.getX();
-        if (action == MotionEvent.ACTION_UP){
-            //TODO: finish the navigation if it's in the navigation mode
-        }
-        return super.onTouchEvent(ev);
-    }
 
     /**
      * Gets the example string attribute value.

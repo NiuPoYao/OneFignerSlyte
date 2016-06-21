@@ -31,10 +31,19 @@ public class PagerFragmentWeatherForecast extends Fragment {
     private static final String ARG_LOCATION = "location";
     private static final String ARG_UNIT = "unit";
 
-    private ArrayList<Object> forecastData;
+    private ArrayList<Object> hourlyForecastData;
+
     private String mLocation;
     private int mUnit;
     private int mSectionNumber;
+
+    private class DetailDailyForecast{
+        public String high, low, pop, humidity;;
+        public String condition, iconString;
+        public String year, moth, date, day;
+
+
+    }
 
     private LineAndBarChartView weatherChart;
 
@@ -197,15 +206,15 @@ public class PagerFragmentWeatherForecast extends Fragment {
                 pop[i] = Integer.parseInt(probabilityOfPrecipitation);
             }
 
-            forecastData = new ArrayList<>();
-            forecastData.add(dates);
-            forecastData.add(forecasts);
-            forecastData.add(hours);
-            forecastData.add(temps);
-            forecastData.add(humidities);
-            forecastData.add(qpf);
-            forecastData.add(pop);
-            return forecastData;
+            hourlyForecastData = new ArrayList<>();
+            hourlyForecastData.add(dates);
+            hourlyForecastData.add(forecasts);
+            hourlyForecastData.add(hours);
+            hourlyForecastData.add(temps);
+            hourlyForecastData.add(humidities);
+            hourlyForecastData.add(qpf);
+            hourlyForecastData.add(pop);
+            return hourlyForecastData;
 
         }
 
