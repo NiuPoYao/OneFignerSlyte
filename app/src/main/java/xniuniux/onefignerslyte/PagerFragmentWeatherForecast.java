@@ -159,7 +159,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
             String city = locationJson.getString("city");
             Log.d(LOG_TAG, city);
 
-            int dataPointsNum = forecastJsonArray.length();
+            int dataPointsNum = Math.min(24, forecastJsonArray.length());
             if (dataPointsNum == 0){ return null; }
 
 

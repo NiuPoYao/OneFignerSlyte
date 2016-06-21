@@ -8,18 +8,16 @@
     android:gravity="bottom"
     android:orientation="vertical">
 
-    <xniuniux.onefignerslyte.SquareRelativeLayout
-        android:id="@+id/pager_banner"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/colorBlack"/>
-
     <RelativeLayout
-        android:id="@+id/pager_body"
+        android:id="@+id/pager_banner"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
     </RelativeLayout>
 
+    <xniuniux.onefignerslyte.SquareRelativeLayout
+        android:id="@+id/pager_body"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
 
 </LinearLayout>

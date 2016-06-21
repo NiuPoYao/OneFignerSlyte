@@ -32,8 +32,8 @@ public class LineAndBarChartView extends ImageView {
     public ArrayList<Integer> mHumidity = new ArrayList<>();
 
     float perColumnWidth;
-    int dataSize;
     private float barWidth;
+    int dataSize;
     float markerSize;
     float fontSize;
     float density = getResources().getDisplayMetrics().density;
@@ -51,7 +51,6 @@ public class LineAndBarChartView extends ImageView {
     private Paint qpfTextPaint = new Paint();
     private Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
-    private float popBarWidth;
     private Path popPath = new Path();
     private Paint popBarPaint = new Paint();
     private Paint popTextPaint = new Paint();
@@ -166,9 +165,9 @@ public class LineAndBarChartView extends ImageView {
         if (mHour != null){
             dataSize = mHour.size();
         }
-        perColumnWidth = (float) ((View) getParent().getParent()).getWidth() /20;
-        barWidth = perColumnWidth*0.9f;
-        popBarWidth = barWidth;
+
+        perColumnWidth = (float) ((View) getParent().getParent()).getWidth() / 18;
+        barWidth = perColumnWidth;
         markerSize = perColumnWidth/1.5f < 18* density ? perColumnWidth/1.5f : 18* density;
         fontSize = markerSize*0.6f;
         textPaint.setTextSize(fontSize);
@@ -211,10 +210,12 @@ public class LineAndBarChartView extends ImageView {
             return;
         }
 
-        float bottomSpace = 2 * fontSize;
+        float bottomSpace = 2 * fontSize + density;
+        float informationSpace = 3 * fontSize;
+        float middleSpace = fontSize;
         contentHeight = contentHeight - bottomSpace;
         int sc = canvas.saveLayer(0,0,canvas.getWidth(),canvas.getHeight() ,null, Canvas.ALL_SAVE_FLAG);
-        float linesDrawHeight = (contentHeight- bottomSpace)/2 - markerSize;
+        float linesDrawHeight = (contentHeight - informationSpace - middleSpace)/2 - markerSize;
 
         Paint.FontMetrics metric = textPaint.getFontMetrics();
         int textHeight = (int) Math.ceil(metric.descent - metric.ascent);
@@ -231,7 +232,7 @@ public class LineAndBarChartView extends ImageView {
 
         float toX = perColumnWidth/2 + paddingLeft;
         float toTempY = paddingTop + markerSize/2 + (tempMax - mTemperature.get(0))*perTempHeight;
-        float toHumiY = paddingTop + contentHeight/2 + markerSize/2 + (humiMax - mHumidity.get(0))*perHumiHeight;
+        float toHumiY = paddingTop + markerSize * 1.5f + linesDrawHeight + middleSpace + (humiMax - mHumidity.get(0))*perHumiHeight;
         float qpfTop = paddingTop + (qpfMax - mQpf.get(0))*perQpfHeight;
         float popTop = paddingTop + (100 - mPop.get(0))*perPopHeight;
 
@@ -240,8 +241,8 @@ public class LineAndBarChartView extends ImageView {
         canvas.drawCircle(toX,toTempY,markerSize/2, tempMarkerPaint);
         canvas.drawCircle(toX,toHumiY,markerSize/2, HumiMarkerPaint);
 
-        qpfPath.addRect(toX - barWidth/2, qpfTop, toX - barWidth/4, paddingTop + contentHeight + 1, Path.Direction.CW);
-        popPath.addRect(toX - barWidth/4, popTop, toX + popBarWidth/2, paddingTop + contentHeight + 1, Path.Direction.CW);
+        qpfPath.addRect(toX - barWidth/2, qpfTop, toX - barWidth/4, paddingTop + contentHeight + density, Path.Direction.CW);
+        popPath.addRect(toX - barWidth/4, popTop, toX + barWidth /2, paddingTop + contentHeight + density, Path.Direction.CW);
 
         canvas.drawText(String.valueOf(mTemperature.get(0)),toX - fontSize/2,toTempY + baseY/2,textPaint);
         canvas.drawText(String.valueOf(mHumidity.get(0)),toX - fontSize/2,toHumiY + baseY/2,textPaint);
@@ -268,11 +269,11 @@ public class LineAndBarChartView extends ImageView {
             //oldHumiY = toHumiY;
 
             qpfTop = (qpfMax - mQpf.get(i))*perQpfHeight + paddingTop;
-            qpfPath.addRect(toX - barWidth/2, qpfTop, toX - barWidth/4, contentHeight + paddingTop + 1, Path.Direction.CW);
+            qpfPath.addRect(toX - barWidth/2, qpfTop , toX - barWidth/4, paddingTop + contentHeight + density, Path.Direction.CW);
             canvas.drawText(String.valueOf(mQpf.get(i)), toX - barWidth/2 + fontSize/4, contentHeight + paddingTop - fontSize/2, qpfTextPaint);
 
             popTop = paddingTop + (100 - mPop.get(i))*perPopHeight;
-            popPath.addRect(toX - barWidth/4, popTop, toX + popBarWidth/2, paddingTop + contentHeight + 1, Path.Direction.CW);
+            popPath.addRect(toX - barWidth/4, popTop , toX + barWidth /2, paddingTop + contentHeight + density, Path.Direction.CW);
             canvas.drawText(String.valueOf(mPop.get(i)) + "%", toX - barWidth/2 + fontSize/4, contentHeight + paddingTop - fontSize*2, popTextPaint);
 
             canvas.drawText(mHour.get(i),toX - fontSize/2, contentHeight + paddingTop + 1.5f*fontSize, textPaint);

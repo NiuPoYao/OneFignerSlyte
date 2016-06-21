@@ -10,13 +10,15 @@
     <color name="colorWhiteTrans">#aaffffff</color>
     <color name="colorTransparent">#00000000</color>
 
-
+    <!--for weather forecast pager-->
     <color name="color_humidity_marker">#808080</color>
     <color name="color_qpf_bar">#333333</color>
     <color name="color_qpf_number">#ffffff</color>
     <color name="color_temp_marker">#666666</color>
     <color name="color_pop_bar">#4d4d4d</color>
     <color name="color_text">#ffffff</color>
+    <color name="vertical_divider">#404040</color>
+
 
     <color name="black_overlay">#22000000</color>
 
