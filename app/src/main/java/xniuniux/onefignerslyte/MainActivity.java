@@ -3,9 +3,12 @@ package xniuniux.onefignerslyte;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.Dialog;
 import android.app.WallpaperManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -15,9 +18,11 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -25,6 +30,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,85 +41,126 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener,
+        GoogleApiClient.OnConnectionFailedListener {
 
+    /** For debugging */
     private String LOG_TAG = "Main Activity";
+    public boolean DeBug = false;
 
     /** Used for interaction with child fragments*/
     public static final int FRG_ACTION_KILL = -1;
     public static final int FRG_ACTION_CHANGE_SHORTCUT = 1;
-    public static final int FRG_ACTION_CONFIRM= 2;
-    public static final int FRG_ACTION_LISTENER_UPDATE= 3;
+    public static final int FRG_ACTION_CONFIRM = 2;
+    public static final int FRG_ACTION_LISTENER_UPDATE = 3;
 
-    /** Used to determine the pager style*/
+    /** Used to determine the pager style */
     public static final int PAGER_STYLE_EMPTY = 0;
     public static final int PAGER_STYLE_WEATHER = 1;
 
+    public int pageNum = 2;
     private ArrayList<Integer> PagerStyle = new ArrayList<>();
     private FragmentManager fm;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
+
+    /** For shortcut */
+    private PackageManager mPm;
     private AppShortcutFragment mAppShortcutFragment = new AppShortcutFragment();
     private AppChooserFragment mAppChooserFragment;
-    private PackageManager mPm;
     private ArrayList<ResolveInfo> mLaunchableApps;
+    private ArrayList<Integer> mVacancies = new ArrayList<>();
+    private ArrayList<Integer> mCandidates = new ArrayList<>();
+    public static List<AppShortInfo> appList;
+    public class AppShortInfo {
+        CharSequence name;
+        List<Bitmap> icons;
+    }
 
+    /** For floating action button */
     private FloatingActionButton fab;
     private boolean isMarginBottomIncreasing = true;
     private boolean isMarginRightIncreasing = true;
     private GestureDetector fabGestureDetector;
     private GestureDetector MainGestureDetector;
 
+    /** Some dimensions */
     public int StatusBarHeight;
     private boolean dragMode = false;
     public int MainWidth;
     public int MainHeight;
 
-    private ArrayList<Integer> mVacancies = new ArrayList<>();
-    private ArrayList<Integer> mCandidates = new ArrayList<>();
-    public static List<AppShortInfo> appList;
+    /** For Retrieving Google servers API */
+    private GoogleApiClient mGoogleApiClient;
+    public Location mLastLocation;
+    // Request code to use when launching the resolution activity
+    private static final int REQUEST_RESOLVE_ERROR = 1001;
+    // Unique tag for the error dialog fragment
+    private static final String DIALOG_ERROR = "dialog_error";
+    // Bool to track whether the app is already resolving an error
+    private boolean mResolvingError = false;
+    private static final String STATE_RESOLVING_ERROR = "resolving_error";
 
-    public int pageNum = 2;
-
-    //public View.OnClickListener mainFabOnClickListener;
-    public class AppShortInfo {
-        CharSequence name;
-        List<Bitmap> icons;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /** solving Google servers API connection error */
+        mResolvingError = savedInstanceState != null
+                && savedInstanceState.getBoolean(STATE_RESOLVING_ERROR, false);
+
+        /** Load pager condition */
         PagerStyle.add(PAGER_STYLE_WEATHER);
         PagerStyle.add(PAGER_STYLE_EMPTY);
-        //TODO: pager style should be able to customized
+        //TODO: pager style should be able to customized and be stored
+
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
-        StatusBarHeight = getStatusBarHeight(this);
-        //Log.d(LOG_TAG, "status bar: " + StatusBarHeight);
-
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
                 WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        fab = (FloatingActionButton) findViewById(R.id.main_fab);
-        fab.setOnTouchListener(fabOnTouchListener);
-        fabGestureDetector = new GestureDetector(this, new fabGestureListener());
 
-        MainGestureDetector = new GestureDetector(this ,new MainGestureListener());
+        StatusBarHeight = getStatusBarHeight(this);
+        if (DeBug) { Log.d(LOG_TAG, "status bar: " + StatusBarHeight); }
 
+        /** Wall paper */
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
         Drawable wallpaperDrawable = wallpaperManager.getDrawable();
         ViewGroup MainView = (ViewGroup) findViewById(R.id.main_content);
+        assert MainView != null;
         MainView.setBackground(wallpaperDrawable);
 
+        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        /** Floating action button */
+        fab = (FloatingActionButton) findViewById(R.id.main_fab);
+        assert fab != null;
+        fab.setOnTouchListener(fabOnTouchListener);
+        fabGestureDetector = new GestureDetector(this, new fabGestureListener());
+
+        /** MainActivity gesture detector */
+        MainGestureDetector = new GestureDetector(this, new MainGestureListener());
+
+        /** Google API Client */
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this /* FragmentActivity */,
+                        this /* OnConnectionFailedListener */)
+                .addApi(LocationServices.API)
+                .build();
+
+        /** Pager */
         mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setPadding(StatusBarHeight/2, 0, StatusBarHeight/2, 0);
+        assert mViewPager != null;
+        mViewPager.setPadding(StatusBarHeight / 2, 0, StatusBarHeight / 2, 0);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -139,9 +186,21 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     }
 
-    public ArrayList<ResolveInfo> sortRIsByLabel(ArrayList<ResolveInfo> RIs, PackageManager pm){
+    @Override
+    public void onResume(){
+        super.onResume();
+        setFabClickListener();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_RESOLVING_ERROR, mResolvingError);
+    }
+
+    public ArrayList<ResolveInfo> sortRIsByLabel(ArrayList<ResolveInfo> RIs, PackageManager pm) {
         final PackageManager fPm = pm;
-        Collections.sort(RIs, new Comparator<ResolveInfo>(){
+        Collections.sort(RIs, new Comparator<ResolveInfo>() {
             public int compare(ResolveInfo emp1, ResolveInfo emp2) {
                 return emp1.loadLabel(fPm).toString().compareToIgnoreCase(emp2.loadLabel(fPm).toString());
             }
@@ -150,192 +209,40 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         return RIs;
     }
 
-    public void setAppList(int pos, ResolveInfo RI){
+    /** Swap app shortcut */
+    public void setAppList(int pos, ResolveInfo RI) {
         AppShortInfo app = appList.get(pos);
         app.name = RI.activityInfo.packageName;
         new getIconSet().execute(app, RI);
     }
 
-    public void setAppList(ArrayList<Integer> vacanciesList, ArrayList<Integer> candidatesList){
+    public void setAppList(ArrayList<Integer> vacanciesList, ArrayList<Integer> candidatesList) {
 
         if (appList == null) {
             appList = new ArrayList<>();
         }
 
-        if (vacanciesList == null && candidatesList == null){
-            for (ResolveInfo RI : mLaunchableApps){
-                if (MainActivity.appList.size()>23){
+        if (vacanciesList == null && candidatesList == null) {
+            for (ResolveInfo RI : mLaunchableApps) {
+                if (MainActivity.appList.size() > 23) {
                     break;
                 }
                 AppShortInfo app = new AppShortInfo();
                 appList.add(app);
-                setAppList(MainActivity.appList.size()-1,RI);
+                setAppList(MainActivity.appList.size() - 1, RI);
             }
         }
 
-        if (candidatesList != null && candidatesList.size()>0){
+        if (candidatesList != null && candidatesList.size() > 0) {
             ResolveInfo RI;
-            for (int i = 0; i < candidatesList.size(); i++){
+            for (int i = 0; i < candidatesList.size(); i++) {
                 RI = mLaunchableApps.get(candidatesList.get(i));
-                setAppList(vacanciesList.get(i) , RI);
+                setAppList(vacanciesList.get(i), RI);
             }
         }
     }
 
-
-    @Override
-    public void onFragmentInteraction(String tag, int action) {
-        String LOG_DEBUG = "OnFragmentInteraction";
-        FragmentManager fm = getSupportFragmentManager();
-        //Log.d(LOG_DEBUG, tag);
-        if (action == FRG_ACTION_LISTENER_UPDATE){
-            setFabClickListener();
-        }
-        switch (tag){
-            case "AppShortcutFragment":
-                if (action == FRG_ACTION_KILL){
-                    fm.popBackStack();
-                    //Log.d(LOG_TAG, fm.getBackStackEntryCount() + "");
-                    break;
-                }
-                if (action == FRG_ACTION_CHANGE_SHORTCUT){
-                    mAppChooserFragment = new AppChooserFragment();
-                    mAppChooserFragment.setLaunchableAppsRI(mLaunchableApps);
-                    mAppChooserFragment.setVacancies(mAppShortcutFragment.getSelectedApp());
-                    fm.beginTransaction().replace(R.id.main_content, mAppChooserFragment,"AppChooser")
-                            .addToBackStack("AppChooser").commit();
-                    break;
-                }
-            case "AppChooserFragment":
-                if (action == FRG_ACTION_CONFIRM){
-                    this.mVacancies = mAppChooserFragment.getVacancies();
-                    this.mCandidates = mAppChooserFragment.getCandidates();
-                    setAppList(mVacancies, mCandidates);
-                    fm.popBackStack();
-                    mVacancies = null;
-                    mCandidates = null;
-                    break;
-                }
-        }
-
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        setFabClickListener();
-    }
-
-    @Override
-    public void onPause(){
-        super.onPause();
-    }
-
-    private View.OnClickListener mainFabOnClickListener = new View.OnClickListener() {
-
-        @Override
-        public void onClick(View view) {
-            FragmentManager fm = getSupportFragmentManager();
-            if (!mAppShortcutFragment.isAdded()){
-                fm.beginTransaction()
-                        .add(R.id.main_content, mAppShortcutFragment, "appShortcut")
-                        .addToBackStack("appShortcut")
-                        .commit();
-            }
-
-        }
-    };
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    /**
-     * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-     * one of the sections/tabs/pages.
-     */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-        public final ArrayList<Fragment> fragments = new ArrayList<>();
-        //public int pageNum = 1;
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object){
-            if (position < getCount()) {
-                FragmentManager m = ((Fragment) object).getFragmentManager();
-                FragmentTransaction t = m.beginTransaction();
-                t.remove((Fragment) object);
-                t.commit();
-            }
-            this.notifyDataSetChanged();
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            // getItem is called to instantiate the fragment for the given page.
-            // Return a PagerFragment (defined as a static inner class below).
-            switch (PagerStyle.get(position) ){
-                case PAGER_STYLE_WEATHER:
-                    return PagerFragmentWeatherForecast.newInstance(position + 1);
-                default:
-                    return PagerFragmentEmpty.newInstance(position + 1);
-
-            }
-
-        }
-
-        @Override
-        public int getCount() {
-            return pageNum;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            switch (position) {
-                case 0:
-                    return "SECTION 2";
-                case 1:
-                    return "SECTION 2";
-                case 2:
-                    return "SECTION 3";
-            }
-            return null;
-        }
-    }
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        this.onTouchEvent(ev);
-        return super.dispatchTouchEvent(ev);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent ev){
-        MainGestureDetector.onTouchEvent(ev);
-        return false;
-    }
-
+    /** Draw shortcuts icon */
     public class getIconSet extends AsyncTask<Object, Void, Void> {
 
         private AppShortInfo appInfo;
@@ -390,10 +297,233 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         return icons;
     }
 
+
+    @Override
+    public void onFragmentInteraction(String tag, int action) {
+        String Log_Tag = "OnFragmentInteraction";
+        FragmentManager fm = getSupportFragmentManager();
+        if (DeBug) { Log.d(Log_Tag, tag); }
+        if (action == FRG_ACTION_LISTENER_UPDATE) {
+            setFabClickListener();
+        }
+        switch (tag) {
+            case "AppShortcutFragment":
+                if (action == FRG_ACTION_KILL) {
+                    fm.popBackStack();
+                    //Log.d(Log_Tag, fm.getBackStackEntryCount() + "");
+                    break;
+                }
+                if (action == FRG_ACTION_CHANGE_SHORTCUT) {
+                    mAppChooserFragment = new AppChooserFragment();
+                    mAppChooserFragment.setLaunchableAppsRI(mLaunchableApps);
+                    mAppChooserFragment.setVacancies(mAppShortcutFragment.getSelectedApp());
+                    fm.beginTransaction().replace(R.id.main_content, mAppChooserFragment, "AppChooser")
+                            .addToBackStack("AppChooser").commit();
+                    break;
+                }
+            case "AppChooserFragment":
+                if (action == FRG_ACTION_CONFIRM) {
+                    this.mVacancies = mAppChooserFragment.getVacancies();
+                    this.mCandidates = mAppChooserFragment.getCandidates();
+                    setAppList(mVacancies, mCandidates);
+                    fm.popBackStack();
+                    mVacancies = null;
+                    mCandidates = null;
+                    break;
+                }
+        }
+
+    }
+
+
+    @Override
+    public void onConnectionFailed(ConnectionResult result) {
+        if (mResolvingError) {
+            // Already attempting to resolve an error.
+        } else if (result.hasResolution()) {
+            try {
+                mResolvingError = true;
+                result.startResolutionForResult(this, REQUEST_RESOLVE_ERROR);
+            } catch (IntentSender.SendIntentException e) {
+                // There was an error with the resolution intent. Try again.
+                mGoogleApiClient.connect();
+            }
+        } else {
+            // Show dialog using GoogleApiAvailability.getErrorDialog()
+            showErrorDialog(result.getErrorCode());
+            mResolvingError = true;
+        }
+    }
+
+    private void showErrorDialog(int errorCode) {
+        // Create a fragment for the error dialog
+        ErrorDialogFragment dialogFragment = new ErrorDialogFragment();
+        // Pass the error that should be displayed
+        Bundle args = new Bundle();
+        args.putInt(DIALOG_ERROR, errorCode);
+        dialogFragment.setArguments(args);
+        dialogFragment.show(getSupportFragmentManager(), "errordialog");
+    }
+
+    /* Called from ErrorDialogFragment when the dialog is dismissed. */
+    public void onDialogDismissed() {
+        mResolvingError = false;
+    }
+
+    /* A fragment to display an error dialog */
+    public static class ErrorDialogFragment extends DialogFragment {
+        public ErrorDialogFragment() { }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Get the error code and retrieve the appropriate dialog
+            int errorCode = this.getArguments().getInt(DIALOG_ERROR);
+            return GoogleApiAvailability.getInstance().getErrorDialog(
+                    this.getActivity(), errorCode, REQUEST_RESOLVE_ERROR);
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            ((MainActivity) getActivity()).onDialogDismissed();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_RESOLVE_ERROR) {
+            mResolvingError = false;
+            if (resultCode == RESULT_OK) {
+                // Make sure the app is not already connected or attempting to connect
+                if (!mGoogleApiClient.isConnecting() &&
+                        !mGoogleApiClient.isConnected()) {
+                    mGoogleApiClient.connect();
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+
+    //TODO
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+
+        public final ArrayList<Fragment> fragments = new ArrayList<>();
+        //public int pageNum = 1;
+        public SectionsPagerAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object){
+            if (position < getCount()) {
+                FragmentManager m = ((Fragment) object).getFragmentManager();
+                FragmentTransaction t = m.beginTransaction();
+                t.remove((Fragment) object);
+                t.commit();
+            }
+            this.notifyDataSetChanged();
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch (PagerStyle.get(position) ){
+                case PAGER_STYLE_WEATHER:
+                    return PagerFragmentWeatherForecast.newInstance(position + 1);
+                default:
+                    return PagerFragmentEmpty.newInstance(position + 1);
+
+            }
+
+        }
+
+        @Override
+        public int getCount() {
+            return pageNum;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            switch (PagerStyle.get(position)) {
+                case PAGER_STYLE_WEATHER:
+                    return "Weather";
+                case PAGER_STYLE_EMPTY:
+                    return "Widget";
+                case 2:
+                    return "SECTION 3";
+            }
+            return null;
+        }
+    }
+
+
+    /** Get floating action button back whenever double click */
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        this.onTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev){
+        MainGestureDetector.onTouchEvent(ev);
+        return false;
+    }
+
+    private class MainGestureListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public  boolean onDoubleTap(MotionEvent e){
+            fabBackAnimator();
+            return false;
+        }
+    }
+
+    public void fabBackAnimator(){
+        float density = getResources().getDisplayMetrics().density;
+
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
+        int mr = lp.rightMargin;
+        int mb = lp.bottomMargin;
+        float newMr = 16 * density + 0.5f;
+        float newMb = 64 * density + 0.5f;
+        AnimatorSet animaSet = new AnimatorSet();
+        ArrayList<Animator> animaList = new ArrayList<>();
+        Animator anima;
+        anima = ObjectAnimator.ofInt(this, "FabMarginRight", mr, (int) newMr);
+        animaList.add(anima);
+        anima = ObjectAnimator.ofInt(this, "FabMarginBottom", mb, (int) newMb);
+        animaList.add(anima);
+        animaSet.playTogether(animaList);
+        animaSet.setDuration(200).setInterpolator(new DecelerateInterpolator());
+        animaSet.start();
+    }
+
+    /** floating action button touch event */
     public View.OnTouchListener fabOnTouchListener = new View.OnTouchListener() {
         float moveFromX;
         float moveFromY;
-        float cumulateMovingThread = 0;
+        float cumulativeMovingThread = 0;
         ViewGroup.MarginLayoutParams lp;
         int mr;
         int mb;
@@ -408,7 +538,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             mb = lp.bottomMargin;
 
             if (action == MotionEvent.ACTION_DOWN) {
-                cumulateMovingThread = 0;
+                cumulativeMovingThread = 0;
                 moveFromX = ev.getX();
                 moveFromY = ev.getY();
             }
@@ -418,10 +548,10 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                 float moveToX = ev.getX();
                 float moveToY = ev.getY();
                 if (!dragMode){
-                    if ((cumulateMovingThread > fab.getWidth()/2)) {
+                    if ((cumulativeMovingThread > fab.getWidth()/2)) {
                         dragMode = true;
                     }
-                    cumulateMovingThread += Math.abs(moveToX - moveFromX)
+                    cumulativeMovingThread += Math.abs(moveToX - moveFromX)
                             + Math.abs(moveToY - moveFromY);
                 }
                 isMarginRightIncreasing = moveToX < moveFromX;
@@ -442,7 +572,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     };
 
     private class fabGestureListener extends GestureDetector.SimpleOnGestureListener {
-        String LOG_TAG = "gesture";
+        String Log_Tag = "gesture";
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float vX, float vY){
@@ -452,14 +582,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             float dmb = isMarginBottomIncreasing ? absDMB : -absDMB;
             fabFlingAnimator((int) dmr, (int) dmb, 120);
             return true;
-        }
-    }
-
-    private class MainGestureListener extends GestureDetector.SimpleOnGestureListener {
-        @Override
-        public  boolean onDoubleTap(MotionEvent e){
-            fabBackAnimator();
-            return false;
         }
     }
 
@@ -523,52 +645,34 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         animaList.add(anima);
         animaSet.playTogether(animaList);
         animaSet.setDuration(duration).setInterpolator(new DecelerateInterpolator());
-        animaSet.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animator) { }
-            @Override
-            public void onAnimationEnd(Animator animator) { fab.show(); }
-            @Override
-            public void onAnimationCancel(Animator animator) { }
-            @Override
-            public void onAnimationRepeat(Animator animator) { }
-        });
         animaSet.start();
     }
 
-    public void fabBackAnimator(){
-        float density = getResources().getDisplayMetrics().density;
+    private View.OnClickListener mainFabOnClickListener = new View.OnClickListener() {
 
-        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
-        int mr = lp.rightMargin;
-        int mb = lp.bottomMargin;
-        float newMr = 16 * density + 0.5f;
-        float newMb = 64 * density + 0.5f;
-        AnimatorSet animaSet = new AnimatorSet();
-        ArrayList<Animator> animaList = new ArrayList<>();
-        Animator anima;
-        anima = ObjectAnimator.ofInt(this, "FabMarginRight", mr, (int) newMr);
-        animaList.add(anima);
-        anima = ObjectAnimator.ofInt(this, "FabMarginBottom", mb, (int) newMb);
-        animaList.add(anima);
-        animaSet.playTogether(animaList);
-        animaSet.setDuration(333).setInterpolator(new DecelerateInterpolator());
-        animaSet.start();
-    }
+        @Override
+        public void onClick(View view) {
+            FragmentManager fm = getSupportFragmentManager();
+            if (!mAppShortcutFragment.isAdded()){
+                fm.beginTransaction()
+                        .add(R.id.main_content, mAppShortcutFragment, "appShortcut")
+                        .addToBackStack("appShortcut")
+                        .commit();
+            }
+
+        }
+    };
 
     public interface ListenerHolder{
         View.OnClickListener getClickListener();
     }
 
-    public int  getStatusBarHeight(){
-        return StatusBarHeight;
-    }
 
-    public int getStatusBarHeight(Context context) {
+    private int getStatusBarHeight(Context context) {
         Class<?> c;
         Object obj;
         java.lang.reflect.Field field;
-        int x = 0;
+        int x;
         int statusBarHeight = 0;
         try {
             c = Class.forName("com.android.internal.R$dimen");
@@ -582,6 +686,22 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         }
         return statusBarHeight;
     }
+
+    public int getStatusBarHeight(){
+        return StatusBarHeight;
+    }
+
+    //TODO
+    public ArrayList<Float> getLocation(){
+        float longitude, latitude;
+
+        if (mLastLocation != null){
+            longitude =(float) mLastLocation.getLongitude();
+            latitude =(float) mLastLocation.getLatitude();
+            }
+        return null;
+    }
+
 }
 
 

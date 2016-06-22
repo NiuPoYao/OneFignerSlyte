@@ -22,6 +22,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 
 public class PagerFragmentWeatherForecast extends Fragment {
@@ -32,6 +33,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
     private static final String ARG_UNIT = "unit";
 
     private ArrayList<Object> hourlyForecastData;
+    private ArrayList<Map<String, String>> dailyForecast;
 
     private String mLocation;
     private int mUnit;
