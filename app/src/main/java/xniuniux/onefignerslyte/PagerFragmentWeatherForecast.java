@@ -22,6 +22,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -34,6 +35,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
 
     private ArrayList<Object> hourlyForecastData;
     private ArrayList<Map<String, String>> dailyForecast;
+    private Map<String, Float> absLocation = new HashMap<>();
 
     private String mLocation;
     private int mUnit;

@@ -147,14 +147,6 @@ public class LineAndBarChartView extends ImageView {
             setLayerType(LAYER_TYPE_SOFTWARE, textPaint);
             setLayerType(LAYER_TYPE_SOFTWARE, qpfTextPaint);
         }
-
-
-       /* mTextPaint.setTextSize(mExampleDimension);
-        mTextPaint.setColor(mExampleColor);
-        mTextWidth = mTextPaint.measureText(mExampleString);
-
-        Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
-        mTextHeight = fontMetrics.bottom;*/
     }
 
     @Override
@@ -191,26 +183,13 @@ public class LineAndBarChartView extends ImageView {
         int contentWidth = getWidth() - paddingLeft - paddingRight;
         float contentHeight = getHeight() - paddingTop - paddingBottom;
 
-        // Draw the text.
-        /*canvas.drawText(mExampleString,
-                paddingLeft + (contentWidth - mTextWidth) / 2,
-                paddingTop + (contentHeight + mTextHeight) / 2,
-                mTextPaint);
-
-        // Draw the example drawable on top of the text.
-        if (mExampleDrawable != null) {
-            mExampleDrawable.setBounds(paddingLeft, paddingTop,
-                    paddingLeft + contentWidth, paddingTop + contentHeight);
-            mExampleDrawable.draw(canvas);
-        }*/
-
         if (mHour == null || mHour.isEmpty()){
             //Log.d(LOG_TAG,"mHour null");
             return;
         }
 
         float bottomSpace = 2 * fontSize + density;
-        float informationSpace = 3 * fontSize;
+        float informationSpace = 4 * fontSize;
         float middleSpace = fontSize;
         contentHeight = contentHeight - bottomSpace;
         int sc = canvas.saveLayer(0,0,canvas.getWidth(),canvas.getHeight() ,null, Canvas.ALL_SAVE_FLAG);
