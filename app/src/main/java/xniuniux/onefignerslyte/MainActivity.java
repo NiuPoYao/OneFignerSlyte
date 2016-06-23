@@ -22,6 +22,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
@@ -46,6 +47,10 @@ import android.view.animation.DecelerateInterpolator;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import java.util.ArrayList;
@@ -55,7 +60,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener,
-        GoogleApiClient.OnConnectionFailedListener {
+        OnConnectionFailedListener, ConnectionCallbacks, LocationListener {
 
     /**
      * For debugging
@@ -123,13 +128,13 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public Location mLastLocation;
     // Request code to use when launching the resolution activity
     private static final int REQUEST_RESOLVE_ERROR = 1001;
-    private static final int REQUEST_CODE_LOCATION = 2;
+    private static final int REQUEST_CODE_UPDATELOCATION = 2;
     // Unique tag for the error dialog fragment
     private static final String DIALOG_ERROR = "dialog_error";
     // Bool to track whether the app is already resolving an error
     private boolean mResolvingError = false;
     private static final String STATE_RESOLVING_ERROR = "resolving_error";
-
+    private LocationRequest mLocationRequest = new LocationRequest();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,10 +178,14 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
         /** Google API Client */
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this /* FragmentActivity */,
-                        this /* OnConnectionFailedListener */)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .build();
+        mLocationRequest.setInterval(60000*15);
+        mLocationRequest.setFastestInterval(60000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
 
         /** Pager */
         mViewPager = (ViewPager) findViewById(R.id.container);
@@ -207,10 +216,26 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
         setFabClickListener();
+    }
+
+    @Override
+    public void onStart(){
+        Log.d(LOG_TAG,"onStart");
+        mGoogleApiClient.connect();
+        Log.d(LOG_TAG,"onStart, connection: " + mGoogleApiClient.isConnected() + ", connecting: " + mGoogleApiClient.isConnecting());
+        super.onStart();
+    }
+
+    @Override
+    public void onStop(){
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        mGoogleApiClient.disconnect();
+        super.onStop();
     }
 
     @Override
@@ -365,6 +390,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     @Override
     public void onConnectionFailed(ConnectionResult result) {
+        Log.d(LOG_TAG, "connection failed");
         if (mResolvingError) {
             // Already attempting to resolve an error.
         } else if (result.hasResolution()) {
@@ -730,43 +756,73 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         return StatusBarHeight;
     }
 
-    
-    public HashMap<String, Float> getLocation() {
-        HashMap<String, Float> absLocation = new HashMap<>();
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+
+    public void updateLocation() {
+        Log.d(LOG_TAG, "updatelocation, " + mGoogleApiClient.isConnected());
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Request missing location permission.
             ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION},
-                    REQUEST_CODE_LOCATION);
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    REQUEST_CODE_UPDATELOCATION);
         } else {
-            // Location permission has been granted, continue as usual.
-            Location location =
-                    LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (location != null) {
                 mLastLocation = location;
+            } else{
+                Log.d(LOG_TAG, "location is null, request update");
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
             }
+
         }
-        if (mLastLocation != null) {
-            absLocation.put("longitude", (float) mLastLocation.getLongitude());
-            absLocation.put("latitude", (float) mLastLocation.getLatitude());
-        }
-        return absLocation;
     }
 
     @Override
+    public void onLocationChanged(Location location) {
+        Log.d(LOG_TAG, "Location has changed");
+
+    }
+
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == REQUEST_CODE_LOCATION) {
-            if (permissions.length == 1 &&
-                    permissions[0].equals(Manifest.permission.ACCESS_COARSE_LOCATION) &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                this.getLocation();
+        if (requestCode == REQUEST_CODE_UPDATELOCATION) {
+            if (permissions.length == 2 &&
+                    permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION) &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                    permissions[1].equals(Manifest.permission.ACCESS_COARSE_LOCATION) &&
+                    grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(LOG_TAG,"permission grant");
+                this.updateLocation();
             } else {
                 Log.d(LOG_TAG, "permission denied");
             }
         }
 
     }
+
+    public HashMap<String, Float> getLocation() {
+        HashMap<String, Float> absLocation = new HashMap<>();
+        if(mLastLocation != null) {
+            Log.d(LOG_TAG, "absLocation not null");
+            absLocation.put("longitude", (float) mLastLocation.getLongitude());
+            absLocation.put("latitude", (float) mLastLocation.getLatitude());
+        }
+
+        return absLocation;
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(LOG_TAG, "onConnect client connected: " + mGoogleApiClient.isConnected());
+        this.updateLocation();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
 }
 
 

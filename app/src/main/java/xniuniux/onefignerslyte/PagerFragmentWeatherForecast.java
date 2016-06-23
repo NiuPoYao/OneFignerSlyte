@@ -1,6 +1,7 @@
 package xniuniux.onefignerslyte;
 
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -65,6 +66,11 @@ public class PagerFragmentWeatherForecast extends Fragment {
     }
 
     @Override
+    public void onAttach(Context context){
+        super.onAttach(context);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
@@ -97,7 +103,17 @@ public class PagerFragmentWeatherForecast extends Fragment {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
             String forecastJsonStr = null;
-
+            //absLocation = ((MainActivity) getActivity()).getLocation();
+            String latitude;
+            String longitude;
+            /*if (absLocation != null) {
+                latitude = Float.toString(absLocation.get("latitude"));
+                longitude = Float.toString(absLocation.get("longitude"));
+            } else {
+                latitude = "51.500125";
+                longitude = "0";
+            }*/
+            //Log.d(LOG_TAG, latitude + ", " +longitude);
             final String preUrl = "http://api.wunderground.com/api/";
             Uri builtUri = Uri.parse(preUrl).buildUpon()
                     .appendPath(BuildConfig.WUNDERGROUND_API_KEY)
@@ -106,7 +122,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
                     .appendPath("hourly")
                     .appendPath("geolookup")
                     .appendPath("q")
-                    .appendPath("25.039350,121.614756.json").build();
+                    .appendPath("51.500125" + "," + "0" +".json").build();
 
             String LOG_TAG = "Weather_Fragment";
 
