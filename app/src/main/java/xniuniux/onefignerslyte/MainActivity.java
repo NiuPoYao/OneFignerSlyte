@@ -812,13 +812,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     public HashMap<String, Float> getLocation() {
-        HashMap<String, Float> absLocation = new HashMap<>();
-        if(mLastLocation != null) {
-            Log.d(LOG_TAG, "absLocation not null");
-            absLocation.put("longitude", (float) mLastLocation.getLongitude());
-            absLocation.put("latitude", (float) mLastLocation.getLatitude());
-        }
+        if(mLastLocation == null) { return null; }
 
+        HashMap<String, Float> absLocation = new HashMap<>();
+        Log.d(LOG_TAG, "absLocation not null");
+        absLocation.put("longitude", (float) mLastLocation.getLongitude());
+        absLocation.put("latitude", (float) mLastLocation.getLatitude());
         return absLocation;
     }
 
