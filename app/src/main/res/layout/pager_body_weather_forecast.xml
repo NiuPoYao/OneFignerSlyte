@@ -41,16 +41,17 @@
             android:layout_weight="1"
             android:orientation="vertical">
             <ImageView
-                android:id="@+id/condition_image"
+                android:id="@+id/condition_image_1st"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"/>
             <TextView
-                android:id="@+id/description"
+                android:id="@+id/description_1st"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="2"
                 android:gravity="center"
+                android:textColor="@color/color_text"
                 android:text="Tue\n32/34"/>
         </LinearLayout>
 
@@ -60,14 +61,17 @@
             android:layout_weight="1"
             android:orientation="vertical">
             <ImageView
+                android:id="@+id/condition_image_2nd"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"/>
             <TextView
+                android:id="@+id/description_2nd"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="2"
                 android:gravity="center"
+                android:textColor="@color/color_text"
                 android:text="Tue\n32/34"/>
         </LinearLayout>
 
@@ -77,14 +81,17 @@
             android:layout_weight="1"
             android:orientation="vertical">
             <ImageView
+                android:id="@+id/condition_image_3rd"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"/>
             <TextView
+                android:id="@+id/description_3rd"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="2"
                 android:gravity="center"
+                android:textColor="@color/color_text"
                 android:text="Tue\n32/34"/>
         </LinearLayout>
 
@@ -94,14 +101,17 @@
             android:layout_weight="1"
             android:orientation="vertical">
             <ImageView
+                android:id="@+id/condition_image_4th"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"/>
             <TextView
+                android:id="@+id/description_4th"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="2"
                 android:gravity="center"
+                android:textColor="@color/color_text"
                 android:text="Tue\n32/34"/>
         </LinearLayout>
 
@@ -111,16 +121,20 @@
             android:layout_weight="1"
             android:orientation="vertical">
             <ImageView
+                android:id="@+id/condition_image_5th"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"/>
             <TextView
+                android:id="@+id/description_5th"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="2"
                 android:gravity="center"
+                android:textColor="@color/color_text"
                 android:text="Tue\n32/34"/>
         </LinearLayout>
+
 
     </LinearLayout>
 

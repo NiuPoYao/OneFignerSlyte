@@ -216,6 +216,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     }
 
+    @Override
+    public void onStart(){
+        mGoogleApiClient.connect();
+        Log.d(LOG_TAG,"onStart, connection: " + mGoogleApiClient.isConnected() + ", connecting: " + mGoogleApiClient.isConnecting());
+        super.onStart();
+    }
 
     @Override
     public void onResume() {
@@ -224,16 +230,15 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     @Override
-    public void onStart(){
-        Log.d(LOG_TAG,"onStart");
-        mGoogleApiClient.connect();
-        Log.d(LOG_TAG,"onStart, connection: " + mGoogleApiClient.isConnected() + ", connecting: " + mGoogleApiClient.isConnecting());
-        super.onStart();
+    public void onPause(){
+        super.onPause();
+        if (mGoogleApiClient.isConnected()){
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+        }
     }
 
     @Override
     public void onStop(){
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         mGoogleApiClient.disconnect();
         super.onStop();
     }
@@ -456,13 +461,13 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         }
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-
 
     //TODO
     @Override
@@ -757,6 +762,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Log.d(LOG_TAG, "onConnect client connected: " + mGoogleApiClient.isConnected());
+        this.updateLocation();
+    }
+
     public void updateLocation() {
         Log.d(LOG_TAG, "updatelocation, " + mGoogleApiClient.isConnected());
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
@@ -778,13 +789,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     @Override
-    public void onLocationChanged(Location location) {
-        Log.d(LOG_TAG, "Location has changed");
-
-    }
-
-
-    @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == REQUEST_CODE_UPDATELOCATION) {
             if (permissions.length == 2 &&
@@ -801,6 +805,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.d(LOG_TAG, "Location has changed");
+        mLastLocation = location;
+    }
+
     public HashMap<String, Float> getLocation() {
         HashMap<String, Float> absLocation = new HashMap<>();
         if(mLastLocation != null) {
@@ -810,12 +820,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         }
 
         return absLocation;
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Log.d(LOG_TAG, "onConnect client connected: " + mGoogleApiClient.isConnected());
-        this.updateLocation();
     }
 
     @Override

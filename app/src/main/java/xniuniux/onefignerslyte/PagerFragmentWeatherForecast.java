@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,7 +36,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
     private static final String ARG_UNIT = "unit";
 
     private ArrayList<Object> hourlyForecastData;
-    private ArrayList<Map<String, String>> dailyForecast;
+    private ArrayList<Map<String, String>> dailyForecastData;
     private Map<String, Float> absLocation = new HashMap<>();
 
     private String mLocation;
@@ -51,6 +52,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
     }
 
     private LineAndBarChartView weatherChart;
+    private LinearLayout dailyForecast;
 
     public PagerFragmentWeatherForecast() {
     }
@@ -87,6 +89,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
         ViewGroup bodyContainer =  (ViewGroup) rootView.findViewById(R.id.pager_body);
         View bodyRootView = inflater.inflate(R.layout.pager_body_weather_forecast, bodyContainer, true);
         weatherChart = (LineAndBarChartView) bodyRootView.findViewById(R.id.weather_stat_chart);
+        dailyForecast = (LinearLayout) bodyRootView.findViewById(R.id.bottom_information);
         new FetchWeather().execute();
         return rootView;
     }
@@ -103,17 +106,17 @@ public class PagerFragmentWeatherForecast extends Fragment {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
             String forecastJsonStr = null;
-            //absLocation = ((MainActivity) getActivity()).getLocation();
+            absLocation = ((MainActivity) getActivity()).getLocation();
             String latitude;
             String longitude;
-            /*if (absLocation != null) {
+            if (absLocation != null) {
                 latitude = Float.toString(absLocation.get("latitude"));
                 longitude = Float.toString(absLocation.get("longitude"));
             } else {
                 latitude = "51.500125";
                 longitude = "0";
-            }*/
-            //Log.d(LOG_TAG, latitude + ", " +longitude);
+            }
+            Log.d(LOG_TAG, latitude + ", " + longitude);
             final String preUrl = "http://api.wunderground.com/api/";
             Uri builtUri = Uri.parse(preUrl).buildUpon()
                     .appendPath(BuildConfig.WUNDERGROUND_API_KEY)
@@ -247,6 +250,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
             weatherChart.mQpf.addAll(Arrays.asList( (Integer[]) array.get(5)) );
             weatherChart.mPop.addAll(Arrays.asList( (Integer[]) array.get(6)) );
             //Log.d(LOG_TAG,"mHour size: " + weatherChart.mHour.size());
+
             weatherChart.requestLayout();
 
         }
