@@ -17,6 +17,8 @@
     <color name="color_temp_marker">#666666</color>
     <color name="color_pop_bar">#4d4d4d</color>
     <color name="color_text">#ffffff</color>
+    <color name="color_button_background">#66333333</color>
+    <color name="color_chart_background">#66333333</color>
     <color name="vertical_divider">#404040</color>
 
 

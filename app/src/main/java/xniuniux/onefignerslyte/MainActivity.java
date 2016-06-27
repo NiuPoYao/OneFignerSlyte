@@ -20,6 +20,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -44,6 +45,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -53,6 +56,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -177,12 +181,14 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         MainGestureDetector = new GestureDetector(this, new MainGestureListener());
 
         /** Google API Client */
+        // ATTENTION: This "addApi(AppIndex.API)"was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
-                .build();
-        mLocationRequest.setInterval(60000*15);
+                .addApi(AppIndex.API).build();
+        mLocationRequest.setInterval(60000 * 15);
         mLocationRequest.setFastestInterval(60000);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
@@ -190,7 +196,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         /** Pager */
         mViewPager = (ViewPager) findViewById(R.id.container);
         assert mViewPager != null;
-        mViewPager.setPadding(StatusBarHeight / 2, 0, StatusBarHeight / 2, 0);
+        mViewPager.setPageTransformer(true, new OnePageTransformer());
+        //mViewPager.setPadding(StatusBarHeight / 2, 0, StatusBarHeight / 2, 0);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -217,10 +224,23 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     @Override
-    public void onStart(){
+    public void onStart() {
         mGoogleApiClient.connect();
-        Log.d(LOG_TAG,"onStart, connection: " + mGoogleApiClient.isConnected() + ", connecting: " + mGoogleApiClient.isConnecting());
+        Log.d(LOG_TAG, "onStart, connection: " + mGoogleApiClient.isConnected() + ", connecting: " + mGoogleApiClient.isConnecting());
         super.onStart();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://xniuniux.onefignerslyte/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(mGoogleApiClient, viewAction);
     }
 
     @Override
@@ -238,9 +258,22 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     @Override
-    public void onStop(){
+    public void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Main Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://xniuniux.onefignerslyte/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(mGoogleApiClient, viewAction);
     }
 
     @Override
@@ -461,7 +494,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         }
     }
 
-
+    //TODO
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -490,7 +523,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
         public final ArrayList<Fragment> fragments = new ArrayList<>();
 
-        //public int pageNum = 1;
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
@@ -530,13 +562,35 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                     return "Weather";
                 case PAGER_STYLE_EMPTY:
                     return "Widget";
-                case 2:
-                    return "SECTION 3";
             }
             return null;
         }
     }
 
+    private class OnePageTransformer implements ViewPager.PageTransformer {
+
+        @Override
+        public void transformPage(View view, float position) {
+
+            Log.d(LOG_TAG,view.toString());
+            if (position < -1) { // [-Infinity,-1)
+                // This page is way off-screen to the left.
+                view.setAlpha(1);
+
+            } else if (position <= 1) { // [-1,1]
+                view.setAlpha(1);
+
+                // Counteract the default slide transition
+                //view.setTranslationX(view.getWidth() * -position);
+
+                //set Y position to swipe in from top
+
+            } else { // (1,+Infinity]
+                // This page is way off-screen to the right.
+                view.setAlpha(1);
+            }
+        }
+    }
 
     /**
      * Get floating action button back whenever double click
@@ -741,7 +795,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     private int getStatusBarHeight(Context context) {
         Class<?> c;
         Object obj;
-        java.lang.reflect.Field field;
+        Field field;
         int x;
         int statusBarHeight = 0;
         try {

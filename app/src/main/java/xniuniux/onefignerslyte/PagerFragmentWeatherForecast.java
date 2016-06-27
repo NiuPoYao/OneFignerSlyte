@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,7 +45,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
     private Map<String, Float> absLocation = new HashMap<>();
 
     private String mLocation;
-    private int mUnit =  PagerFragmentWeatherForecast.UNIT_METRIC;
+    private int mUnit;
     private String mUnitTempSymbol;
     private int mSectionNumber;
 
@@ -57,7 +58,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
     }
 
     private LineAndBarChartView weatherChart;
-    private LinearLayout dailyForecast;
+    private LinearLayout dailyForecastView;
 
     public PagerFragmentWeatherForecast() {
     }
@@ -82,7 +83,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mLocation = getArguments().getString(ARG_LOCATION);
-            mUnit = getArguments().getInt(ARG_UNIT);
+            mUnit = getArguments().getInt(ARG_UNIT, PagerFragmentWeatherForecast.UNIT_METRIC);
             mSectionNumber = getArguments().getInt(ARG_SECTION_NUMBER);
         }
         mUnitTempSymbol = mUnit == PagerFragmentWeatherForecast.UNIT_IMPERIAL ? "\u2109":"\u2103";
@@ -91,11 +92,15 @@ public class PagerFragmentWeatherForecast extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         final View rootView = inflater.inflate(R.layout.fragment_section, container, false);
         ViewGroup bodyContainer =  (ViewGroup) rootView.findViewById(R.id.pager_body);
         View bodyRootView = inflater.inflate(R.layout.pager_body_weather_forecast, bodyContainer, true);
+        View scrollview = bodyRootView.findViewById(R.id.scroll_panel);
+        int pad = ((MainActivity) getActivity()).getStatusBarHeight()/2;
+        scrollview.setPadding(pad, pad, pad, pad);
         weatherChart = (LineAndBarChartView) bodyRootView.findViewById(R.id.weather_stat_chart);
-        dailyForecast = (LinearLayout) bodyRootView.findViewById(R.id.bottom_information);
+        dailyForecastView = (LinearLayout) bodyRootView.findViewById(R.id.bottom_information);
         new FetchWeather().execute();
         return rootView;
     }
@@ -131,7 +136,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
                     .appendPath("geolookup")
                     .appendPath("q")
                     .appendPath(latitude + "," + longitude + ".json").build();
-
+            Log.d(Log_Tag,builtUri.toString());
 
             try {
                 URL url = new URL(builtUri.toString());
@@ -204,67 +209,76 @@ public class PagerFragmentWeatherForecast extends Fragment {
             hourlyForecastData = getHourlyForecast(hourlyForecastJsonArray);
             currentObsData = getCurrentObservation(currentJson);
             dailyForecastData = getDailyForecast(dailySimpleForecastJson, dailyTxtForecastJsonArray);
+            if (dailyForecastData == null) { Log.d(LOG_TAG,"null");}
         }
 
         private ArrayList<Map<String,String>> getDailyForecast(JSONArray simpleArray, JSONArray txtArray)
                 throws JSONException{
             int dataPointsNum = Math.min(5, simpleArray.length());
             if (dataPointsNum == 0){ return null; }
-
+            Log.d(LOG_TAG, "" + dataPointsNum);
             ArrayList<Map<String,String>> dailyForecast = new ArrayList<>(dataPointsNum);
 
             for (int i = 0; i < dataPointsNum; i++){
-                Map<String,String> dayData = new HashMap<>();
+                Map<String,String> dailyData = new HashMap<>();
                 JSONObject dayForecast = simpleArray.getJSONObject(i);
+                JSONObject txtForecast = txtArray.getJSONObject(2*i);
+                JSONObject txtForecastNight = txtArray.getJSONObject(2*i + 1);
                 JSONObject date = dayForecast.getJSONObject("date");
-                dayData.put("month", date.getString("monthname_short"));
-                dayData.put("day", date.getString("day"));
-                dayData.put("week", date.getString("weekday"));
-                dayData.put("week_short", date.getString("weekday_short"));
-                dayData.put("condition", dayForecast.getString("conditions"));
-                dayData.put("pop", dayForecast.getString("pop") + "%");
-                dayData.put("humidity_ave", String.valueOf( dayForecast.getInt("avehumidity")) );
-                dayData.put("humidity_max", String.valueOf( dayForecast.getInt("maxhumidity")) );
-                dayData.put("humidity_min", String.valueOf( dayForecast.getInt("minhumidity")) );
+                dailyData.put("month", date.getString("monthname_short"));
+                dailyData.put("day", date.getString("day"));
+                dailyData.put("week", date.getString("weekday"));
+                dailyData.put("week_short", date.getString("weekday_short"));
+                dailyData.put("condition", dayForecast.getString("conditions"));
+                dailyData.put("pop", dayForecast.getString("pop") + "%");
+                dailyData.put("humidity_ave", String.valueOf( dayForecast.getInt("avehumidity")) );
+                dailyData.put("humidity_max", String.valueOf( dayForecast.getInt("maxhumidity")) );
+                dailyData.put("humidity_min", String.valueOf( dayForecast.getInt("minhumidity")) );
 
                 String high, low, qpf_day, qpf_night, qpf_all, snow_day, snow_night, snow_all,
-                        wind, wind_max;
+                        wind, wind_max, descri, descriN;
                 if (mUnit == PagerFragmentWeatherForecast.UNIT_IMPERIAL){
                     high = dayForecast.getJSONObject("high").getString("fahrenheit");
                     low = dayForecast.getJSONObject("low").getString("fahrenheit");
-                    qpf_all = String.valueOf( dayForecast.getJSONObject("qpf_allday").getDouble("in"));
-                    qpf_day = String.valueOf( dayForecast.getJSONObject("qpf_day").getDouble("in"));
-                    qpf_night = String.valueOf( dayForecast.getJSONObject("qpf_night").getDouble("in"));
-                    snow_all = String.valueOf( dayForecast.getJSONObject("snow_allday").getDouble("in"));
-                    snow_day = String.valueOf( dayForecast.getJSONObject("snow_day").getDouble("in"));
-                    snow_night = String.valueOf( dayForecast.getJSONObject("snow_night").getDouble("in"));
-                    wind = String.valueOf( dayForecast.getJSONObject("avewind").getDouble("mph"));
-                    wind_max = String.valueOf( dayForecast.getJSONObject("maxwind").getDouble("mph"));
+                    qpf_all = dayForecast.getJSONObject("qpf_allday").getString("in");
+                    qpf_day = dayForecast.getJSONObject("qpf_day").getString("in");
+                    qpf_night = dayForecast.getJSONObject("qpf_night").getString("in");
+                    snow_all = dayForecast.getJSONObject("snow_allday").getString("in");
+                    snow_day = dayForecast.getJSONObject("snow_day").getString("in");
+                    snow_night = dayForecast.getJSONObject("snow_night").getString("in");
+                    wind = dayForecast.getJSONObject("avewind").getString("mph");
+                    wind_max = dayForecast.getJSONObject("maxwind").getString("mph");
+                    descri = txtForecast.getString("fcttext");
+                    descriN = txtForecastNight.getString("fcttext");
                 } else {
-                    high = dayForecast.getJSONObject("high").getString("fahrenheit");
-                    low = dayForecast.getJSONObject("low").getString("fahrenheit");
-                    qpf_all = String.valueOf( dayForecast.getJSONObject("qpf_allday").getDouble("mm"));
-                    qpf_day = String.valueOf( dayForecast.getJSONObject("qpf_day").getDouble("mm"));
-                    qpf_night = String.valueOf( dayForecast.getJSONObject("qpf_night").getDouble("mm"));
-                    snow_all = String.valueOf( dayForecast.getJSONObject("snow_allday").getDouble("cm"));
-                    snow_day = String.valueOf( dayForecast.getJSONObject("snow_day").getDouble("cm"));
-                    snow_night = String.valueOf( dayForecast.getJSONObject("snow_night").getDouble("cm"));
-                    wind = String.valueOf( dayForecast.getJSONObject("avewind").getDouble("kph"));
-                    wind_max = String.valueOf( dayForecast.getJSONObject("maxwind").getDouble("kph"));
+                    high = dayForecast.getJSONObject("high").getString("celsius");
+                    low = dayForecast.getJSONObject("low").getString("celsius");
+                    qpf_all = dayForecast.getJSONObject("qpf_allday").getString("mm");
+                    qpf_day = dayForecast.getJSONObject("qpf_day").getString("mm");
+                    qpf_night =  dayForecast.getJSONObject("qpf_night").getString("mm");
+                    snow_all = dayForecast.getJSONObject("snow_allday").getString("cm");
+                    snow_day = dayForecast.getJSONObject("snow_day").getString("cm");
+                    snow_night = dayForecast.getJSONObject("snow_night").getString("cm");
+                    wind = dayForecast.getJSONObject("avewind").getString("kph");
+                    wind_max = dayForecast.getJSONObject("maxwind").getString("kph");
+                    descri = txtForecast.getString("fcttext_metric");
+                    descriN = txtForecastNight.getString("fcttext_metric");
                 }
-                dayData.put("high", high);
-                dayData.put("low", low);
-                dayData.put("qpf_all", qpf_all);
-                dayData.put("qpf_day", qpf_day);
-                dayData.put("qpf_night", qpf_night);
-                dayData.put("snow_all", snow_all);
-                dayData.put("snow_day", snow_day);
-                dayData.put("snow_day", snow_day);
-                dayData.put("snow_night", snow_night);
-                dayData.put("wind", wind);
-                dayData.put("wind_max", wind_max);
+                dailyData.put("high", high);
+                dailyData.put("low", low);
+                dailyData.put("qpf_all", qpf_all);
+                dailyData.put("qpf_day", qpf_day);
+                dailyData.put("qpf_night", qpf_night);
+                dailyData.put("snow_all", snow_all);
+                dailyData.put("snow_day", snow_day);
+                dailyData.put("snow_day", snow_day);
+                dailyData.put("snow_night", snow_night);
+                dailyData.put("wind", wind);
+                dailyData.put("wind_max", wind_max);
+                dailyData.put("text", descri);
+                dailyData.put("text_night", descriN);
 
-                dailyForecast.add(dayData);
+                dailyForecast.add(dailyData);
             }
             return dailyForecast;
         }
@@ -359,6 +373,12 @@ public class PagerFragmentWeatherForecast extends Fragment {
         @Override
         protected void onPostExecute(Void param) {
 
+            setHourlyForecast();
+            setDailyForecast();
+
+        }
+
+        private void setHourlyForecast(){
             weatherChart.mHour.addAll(Arrays.asList( (String[]) hourlyForecastData.get(2)) );
             weatherChart.mTemperature.addAll(Arrays.asList( (Integer[]) hourlyForecastData.get(3)) );
             weatherChart.mHumidity.addAll(Arrays.asList( (Integer[]) hourlyForecastData.get(4)) );
@@ -367,7 +387,20 @@ public class PagerFragmentWeatherForecast extends Fragment {
             //Log.d(LOG_TAG,"mHour size: " + weatherChart.mHour.size());
 
             weatherChart.requestLayout();
+        }
 
+        private void setDailyForecast(){
+            if (dailyForecastData == null ){ return; }
+            for(int i = 0; i < 5; i++) {
+                Log.d(LOG_TAG, i + "");
+                Map<String,String> data = dailyForecastData.get(i);
+                ViewGroup child = (ViewGroup) dailyForecastView.getChildAt(i);
+                //TODO: icon
+                TextView textView = (TextView) child.getChildAt(1);
+                String text = data.get("week_short") + "\n" + data.get("low") + " - " + data.get("high");
+                textView.setText(text);
+            }
+            dailyForecastView.requestLayout();
         }
 
     }

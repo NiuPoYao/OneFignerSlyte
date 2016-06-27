@@ -104,16 +104,6 @@ public class LineAndBarChartView extends ImageView {
 
         // Update TextPaint and text measurements from attributes
         invalidateTextPaintAndMeasurements();
-
-
-        /*String[] hourarray = {"06","07","08","09","10","11","12","13","14","15","16'","17","18","19"};
-        mHour.addAll(Arrays.asList(hourarray));
-        Integer[] temparray = {30,31,32,34,32,30,28,29,27,26,25,27,29,32};
-        mTemperature.addAll(Arrays.asList(temparray));
-        Integer[] humiarray = {55,60,67,65,70,77,72,69,73,75,77,79,82,85};
-        mHumidity.addAll(Arrays.asList(humiarray));
-        Integer[] qpfarray = {155,60,67,10,1,2,20,49,73,100,180,200,282,285};
-        mQpf.addAll(Arrays.asList(qpfarray));*/
     }
 
     private void invalidateTextPaintAndMeasurements() {

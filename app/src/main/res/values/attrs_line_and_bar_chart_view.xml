@@ -1,8 +1,11 @@
 <resources>
     <declare-styleable name="LineAndBarChartView">
         <attr name="exampleString" format="string" />
-        <attr name="exampleDimension" format="dimension" />
-        <attr name="exampleColor" format="color" />
-        <attr name="exampleDrawable" format="color|reference" />
+        <attr name="prime_bar_color" format="color" />
+        <attr name="second_bar_color" format="color" />
+        <attr name="prime_line_color" format="color" />
+        <attr name="second_line_color" format="color" />
+        <attr name="prime_txt_color" format="color" />
+        <attr name="background_color" format="color" />
     </declare-styleable>
 </resources>

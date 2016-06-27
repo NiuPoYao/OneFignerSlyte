@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,16 +10,14 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="3"
-        android:background="@color/colorBlackTrans"
-        android:scrollbars="none">
+        android:scrollbars="none"
+        android:background="@color/color_chart_background">
 
         <xniuniux.onefignerslyte.LineAndBarChartView
             android:id="@+id/weather_stat_chart"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:paddingTop="8dp"
-            android:paddingRight="8dp"
-            android:paddingLeft="8dp"/>
+            />
 
     </HorizontalScrollView>
 
@@ -31,15 +28,18 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="2"
+        android:layout_marginTop="3dp"
+        android:divider="@drawable/vertical_divider"
         android:showDividers="middle"
-        android:background="@color/color_pop_bar"
-        android:divider="@drawable/vertical_divider">
+        android:clickable="true">
 
         <LinearLayout
             android:layout_height="match_parent"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@color/color_button_background"
+            android:elevation="5dp">
             <ImageView
                 android:id="@+id/condition_image_1st"
                 android:layout_width="match_parent"
@@ -52,14 +52,15 @@
                 android:layout_weight="2"
                 android:gravity="center"
                 android:textColor="@color/color_text"
-                android:text="Tue\n32/34"/>
+                android:text="Today\n32/34"/>
         </LinearLayout>
 
         <LinearLayout
             android:layout_height="match_parent"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@color/color_button_background">
             <ImageView
                 android:id="@+id/condition_image_2nd"
                 android:layout_width="match_parent"
@@ -72,14 +73,15 @@
                 android:layout_weight="2"
                 android:gravity="center"
                 android:textColor="@color/color_text"
-                android:text="Tue\n32/34"/>
+                android:text="Tomorrow\n32/34"/>
         </LinearLayout>
 
         <LinearLayout
             android:layout_height="match_parent"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@color/color_button_background">
             <ImageView
                 android:id="@+id/condition_image_3rd"
                 android:layout_width="match_parent"
@@ -99,7 +101,8 @@
             android:layout_height="match_parent"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@color/color_button_background">
             <ImageView
                 android:id="@+id/condition_image_4th"
                 android:layout_width="match_parent"
@@ -119,7 +122,8 @@
             android:layout_height="match_parent"
             android:layout_width="0dp"
             android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="@color/color_button_background">
             <ImageView
                 android:id="@+id/condition_image_5th"
                 android:layout_width="match_parent"
