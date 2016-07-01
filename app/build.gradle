@@ -33,4 +33,6 @@ dependencies {
     compile 'com.android.support:support-v4:23.4.0'
     compile 'com.google.android.gms:play-services-location:9.0.2'
     compile 'com.google.android.gms:play-services-appindexing:9.0.2'
+
+    compile 'com.github.castorflex.verticalviewpager:library:19.0.1'
 }

@@ -18,8 +18,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     private OnFragmentInteractionListener mInteractionListener;
     private CircleListLayout cLayout;
     private ArrayList<Integer> mSelectedApp = new ArrayList<>();
+    CropImageView backgroundView;
     private float density;
 
     private View.OnClickListener shortcutFabOnClickListener;
@@ -64,10 +68,17 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
         View rootView = inflater.inflate(R.layout.fragment_app_shortcut, container, false);
         View frame = rootView.findViewById(R.id.app_shortcut_container);
         int statusBarHeight = ((MainActivity) getActivity()).getStatusBarHeight();
-        frame.setPadding(statusBarHeight/2, 0, statusBarHeight/2, 0);
+        frame.setPadding(statusBarHeight/2, statusBarHeight, statusBarHeight/2, 0);
 
         cLayout = (CircleListLayout) rootView.findViewById(R.id.circle_list_layout);
-
+        backgroundView = (CropImageView) rootView.findViewById(R.id.shortcut_background);
+        backgroundView.setOffset(0,1);
+        backgroundView.setImageBitmap(
+                BlurBuilder.blur(
+                        getContext(),
+                        ((MainActivity) getActivity()).wallpaperBitmap,
+                        20f, null
+                ) );
         shortcutFabOnClickListener = destroyFabOnClickListener;
 
         renewList(null);
@@ -121,12 +132,16 @@ public class AppShortcutFragment extends Fragment implements MainActivity.Listen
     }
 
     public void showList(){
+        final Animation fadeIn = new AlphaAnimation(0, 1);
+        fadeIn.setInterpolator(new LinearInterpolator());
+        fadeIn.setDuration(400);
         ViewTreeObserver vto = cLayout.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 //Log.d(LOG_TAG,"Global layout OK!");
                 cLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                backgroundView.startAnimation(fadeIn);
                 Handler handler = new Handler();
                 final float startX = cLayout.getWidth()/2;
                 final float startY = cLayout.getHeight()/2;

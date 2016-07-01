@@ -42,7 +42,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 
 import com.google.android.gms.appindexing.Action;
@@ -70,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
      * For debugging
      */
     private String LOG_TAG = "Main Activity";
-    public boolean DeBug = false;
+    public boolean DEBUG = false;
 
     /**
      * Used for interaction with child fragments
@@ -86,8 +85,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public static final int PAGER_STYLE_EMPTY = 0;
     public static final int PAGER_STYLE_WEATHER = 1;
 
+//    public Drawable wallpaperDrawable;
+    public Bitmap wallpaperBitmap;
+
     public int pageNum = 2;
     private ArrayList<Integer> PagerStyle = new ArrayList<>();
+    private ArrayList<Float> PagerBackgroundBlur = new ArrayList<>();
     private FragmentManager fm;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
@@ -104,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public static List<AppShortInfo> appList;
 
     public class AppShortInfo {
-        CharSequence name;
+        String name;
         List<Bitmap> icons;
     }
 
@@ -140,6 +143,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     private static final String STATE_RESOLVING_ERROR = "resolving_error";
     private LocationRequest mLocationRequest = new LocationRequest();
 
+    private ViewGroup MainView;
+    private Context ctx = this;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -150,27 +156,30 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         /** Load pager condition */
         PagerStyle.add(PAGER_STYLE_WEATHER);
         PagerStyle.add(PAGER_STYLE_EMPTY);
+        PagerBackgroundBlur.add(7.5f);
+        PagerBackgroundBlur.add(0f);
+
         //TODO: pager style should be able to customized and be stored
 
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
 
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
-                WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
 
         StatusBarHeight = getStatusBarHeight(this);
-        if (DeBug) {
+        if (DEBUG) {
             Log.d(LOG_TAG, "status bar: " + StatusBarHeight);
         }
 
         /** Wall paper */
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
         Drawable wallpaperDrawable = wallpaperManager.getDrawable();
-        ViewGroup MainView = (ViewGroup) findViewById(R.id.main_content);
+        wallpaperBitmap = ((BitmapDrawable) wallpaperDrawable).getBitmap();
+        MainView = (ViewGroup) findViewById(R.id.main_content);
         assert MainView != null;
-        MainView.setBackground(wallpaperDrawable);
-
+        MainView.setBackground( new BitmapDrawable( getResources(),
+                BlurBuilder.blur(this, wallpaperBitmap, 0f, 1f) ) );
         //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         /** Floating action button */
         fab = (FloatingActionButton) findViewById(R.id.main_fab);
         assert fab != null;
@@ -181,8 +190,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         MainGestureDetector = new GestureDetector(this, new MainGestureListener());
 
         /** Google API Client */
-        // ATTENTION: This "addApi(AppIndex.API)"was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -197,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         mViewPager = (ViewPager) findViewById(R.id.container);
         assert mViewPager != null;
         mViewPager.setPageTransformer(true, new OnePageTransformer());
-        //mViewPager.setPadding(StatusBarHeight / 2, 0, StatusBarHeight / 2, 0);
+        mViewPager.setPadding(StatusBarHeight / 2, 0, StatusBarHeight / 2, 0);
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -211,11 +218,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
         //setSupportActionBar(toolbar);
 
-
-        Intent i = new Intent(Intent.ACTION_MAIN, null);
-        i.addCategory(Intent.CATEGORY_LAUNCHER);
+        /** AppList */
+        //TODO: move to background and hide fab until finished
+        Intent intent = new Intent(Intent.ACTION_MAIN, null);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
         mPm = getPackageManager();
-        mLaunchableApps = (ArrayList<ResolveInfo>) mPm.queryIntentActivities(i, 0);
+        mLaunchableApps = (ArrayList<ResolveInfo>) mPm.queryIntentActivities(intent, 0);
 
         mLaunchableApps = sortRIsByLabel(mLaunchableApps, mPm);
 
@@ -228,19 +236,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         mGoogleApiClient.connect();
         Log.d(LOG_TAG, "onStart, connection: " + mGoogleApiClient.isConnected() + ", connecting: " + mGoogleApiClient.isConnecting());
         super.onStart();
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
-                Action.TYPE_VIEW, // TODO: choose an action type.
-                "Main Page", // TODO: Define a title for the content shown.
-                // TODO: If you have web page content that matches this app activity's content,
-                // make sure this auto-generated web page URL is correct.
-                // Otherwise, set the URL to null.
-                Uri.parse("http://host/path"),
-                // TODO: Make sure this auto-generated app URL is correct.
-                Uri.parse("android-app://xniuniux.onefignerslyte/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(mGoogleApiClient, viewAction);
     }
 
     @Override
@@ -390,7 +385,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public void onFragmentInteraction(String tag, int action) {
         String Log_Tag = "OnFragmentInteraction";
         FragmentManager fm = getSupportFragmentManager();
-        if (DeBug) {
+        if (DEBUG) {
             Log.d(Log_Tag, tag);
         }
         if (action == FRG_ACTION_LISTENER_UPDATE) {
@@ -572,22 +567,17 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         @Override
         public void transformPage(View view, float position) {
 
-            Log.d(LOG_TAG,view.toString());
+
             if (position < -1) { // [-Infinity,-1)
                 // This page is way off-screen to the left.
-                view.setAlpha(1);
+                view.setAlpha(0);
 
             } else if (position <= 1) { // [-1,1]
                 view.setAlpha(1);
 
-                // Counteract the default slide transition
-                //view.setTranslationX(view.getWidth() * -position);
-
-                //set Y position to swipe in from top
-
             } else { // (1,+Infinity]
                 // This page is way off-screen to the right.
-                view.setAlpha(1);
+                view.setAlpha(0);
             }
         }
     }
@@ -879,6 +869,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     public void onConnectionSuspended(int i) {
 
     }
+
 
 }
 

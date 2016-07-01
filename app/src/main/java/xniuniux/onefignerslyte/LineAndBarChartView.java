@@ -140,21 +140,21 @@ public class LineAndBarChartView extends ImageView {
     }
 
     @Override
-    protected void onMeasure(int wms, int hms){
-        super.onMeasure(wms,hms);
+    protected void onMeasure(int wms, int hms) {
+        super.onMeasure(wms, hms);
         //Log.d(LOG_TAG,"SpecSize: width-" + MeasureSpec.getSize(wms) + ", Height-" + MeasureSpec.getSize(hms));
-        if (mHour != null){
+        if (mHour != null) {
             dataSize = mHour.size();
         }
 
         perColumnWidth = (float) ((View) getParent().getParent()).getWidth() / 18;
         barWidth = perColumnWidth;
-        markerSize = perColumnWidth/1.5f < 18* density ? perColumnWidth/1.5f : 18* density;
-        fontSize = markerSize*0.6f;
+        markerSize = perColumnWidth / 1.5f < 18 * density ? perColumnWidth / 1.5f : 18 * density;
+        fontSize = markerSize * 0.6f;
         textPaint.setTextSize(fontSize);
         qpfTextPaint.setTextSize(fontSize);
         popTextPaint.setTextSize(fontSize);
-        float width = perColumnWidth*dataSize + getPaddingLeft() + getPaddingRight();
+        float width = perColumnWidth * dataSize + getPaddingLeft() + getPaddingRight();
         setMeasuredDimension((int) width, getMeasuredHeight());
         //Log.d(LOG_TAG,"markerSize: " + markerSize + ", getWidth: " + getWidth() + ", mHour size: " + mHour.size());
     }
@@ -162,9 +162,11 @@ public class LineAndBarChartView extends ImageView {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        if (getWidth()<500 ){return;}
+        if (getWidth() < 500) {
+            return;
+        }
         // TODO: consider storing these as member variables to reduce
-        // allocations per draw cycle.
+
         int paddingLeft = getPaddingLeft();
         int paddingTop = getPaddingTop();
         int paddingRight = getPaddingRight();
@@ -173,7 +175,7 @@ public class LineAndBarChartView extends ImageView {
         int contentWidth = getWidth() - paddingLeft - paddingRight;
         float contentHeight = getHeight() - paddingTop - paddingBottom;
 
-        if (mHour == null || mHour.isEmpty()){
+        if (mHour == null || mHour.isEmpty()) {
             //Log.d(LOG_TAG,"mHour null");
             return;
         }
@@ -182,69 +184,69 @@ public class LineAndBarChartView extends ImageView {
         float informationSpace = 4 * fontSize;
         float middleSpace = fontSize;
         contentHeight = contentHeight - bottomSpace;
-        int sc = canvas.saveLayer(0,0,canvas.getWidth(),canvas.getHeight() ,null, Canvas.ALL_SAVE_FLAG);
-        float linesDrawHeight = (contentHeight - informationSpace - middleSpace)/2 - markerSize;
+        int sc = canvas.saveLayer(0, 0, canvas.getWidth(), canvas.getHeight(), null, Canvas.ALL_SAVE_FLAG);
+        float linesDrawHeight = (contentHeight - informationSpace - middleSpace) / 2 - markerSize;
 
         Paint.FontMetrics metric = textPaint.getFontMetrics();
         int textHeight = (int) Math.ceil(metric.descent - metric.ascent);
-        int baseY = (int)(textHeight - metric.descent);
+        int baseY = (int) (textHeight - metric.descent);
 
         int tempMax = Collections.max(mTemperature);
         int humiMax = Collections.max(mHumidity);
-        int qpfMax = Math.max(Collections.max(mQpf),5);
+        int qpfMax = Math.max(Collections.max(mQpf), 5);
 
-        float perTempHeight = linesDrawHeight/Math.max(( tempMax - Collections.min(mTemperature)), 1);
-        float perHumiHeight  = linesDrawHeight/Math.max(( humiMax - Collections.min(mHumidity)), 1);
-        float perQpfHeight = contentHeight/qpfMax;
-        float perPopHeight = contentHeight/100;
+        float perTempHeight = linesDrawHeight / Math.max((tempMax - Collections.min(mTemperature)), 1);
+        float perHumiHeight = linesDrawHeight / Math.max((humiMax - Collections.min(mHumidity)), 1);
+        float perQpfHeight = contentHeight / qpfMax;
+        float perPopHeight = contentHeight / 100;
 
-        float toX = perColumnWidth/2 + paddingLeft;
-        float toTempY = paddingTop + markerSize/2 + (tempMax - mTemperature.get(0))*perTempHeight;
-        float toHumiY = paddingTop + markerSize * 1.5f + linesDrawHeight + middleSpace + (humiMax - mHumidity.get(0))*perHumiHeight;
-        float qpfTop = paddingTop + (qpfMax - mQpf.get(0))*perQpfHeight;
-        float popTop = paddingTop + (100 - mPop.get(0))*perPopHeight;
+        float toX = perColumnWidth / 2 + paddingLeft;
+        float toTempY = paddingTop + markerSize / 2 + (tempMax - mTemperature.get(0)) * perTempHeight;
+        float toHumiY = paddingTop + markerSize * 1.5f + linesDrawHeight + middleSpace + (humiMax - mHumidity.get(0)) * perHumiHeight;
+        float qpfTop = paddingTop + (qpfMax - mQpf.get(0)) * perQpfHeight;
+        float popTop = paddingTop + (100 - mPop.get(0)) * perPopHeight;
 
-        tempPath.moveTo( toX, toTempY);
-        HumiPath.moveTo( toX, toHumiY);
-        canvas.drawCircle(toX,toTempY,markerSize/2, tempMarkerPaint);
-        canvas.drawCircle(toX,toHumiY,markerSize/2, HumiMarkerPaint);
+        tempPath.moveTo(toX, toTempY);
+        HumiPath.moveTo(toX, toHumiY);
+        canvas.drawCircle(toX, toTempY, markerSize / 2, tempMarkerPaint);
+        canvas.drawCircle(toX, toHumiY, markerSize / 2, HumiMarkerPaint);
 
-        qpfPath.addRect(toX - barWidth/2, qpfTop, toX - barWidth/4, paddingTop + contentHeight + density, Path.Direction.CW);
-        popPath.addRect(toX - barWidth/4, popTop, toX + barWidth /2, paddingTop + contentHeight + density, Path.Direction.CW);
+        qpfPath.addRect(toX - barWidth / 2, qpfTop, toX - barWidth / 4, paddingTop + contentHeight + density, Path.Direction.CW);
+        popPath.addRect(toX - barWidth / 4, popTop, toX + barWidth / 2, paddingTop + contentHeight + density, Path.Direction.CW);
 
-        canvas.drawText(String.valueOf(mTemperature.get(0)),toX - fontSize/2,toTempY + baseY/2,textPaint);
-        canvas.drawText(String.valueOf(mHumidity.get(0)),toX - fontSize/2,toHumiY + baseY/2,textPaint);
+        canvas.drawText(String.valueOf(mTemperature.get(0)), toX - fontSize / 2, toTempY + baseY / 2, textPaint);
+        canvas.drawText(String.valueOf(mHumidity.get(0)), toX - fontSize / 2, toHumiY + baseY / 2, textPaint);
 
-        canvas.drawText(String.valueOf(mQpf.get(0)), toX - barWidth/2 + fontSize/4, contentHeight + paddingTop - fontSize/2, qpfTextPaint);
-        canvas.drawText(String.valueOf(mPop.get(0)) + "%", toX - barWidth/2 + fontSize/4, contentHeight + paddingTop - fontSize*2, popTextPaint);
+        canvas.drawText(String.valueOf(mQpf.get(0)), toX - barWidth / 2 + fontSize / 4, contentHeight + paddingTop - fontSize / 2, qpfTextPaint);
+        canvas.drawText(String.valueOf(mPop.get(0)) + "%", toX - barWidth / 2 + fontSize / 4, contentHeight + paddingTop - fontSize * 2, popTextPaint);
 
-        canvas.drawText(mHour.get(0),toX - fontSize/2, contentHeight + paddingTop + 1.5f*fontSize, textPaint);
+        canvas.drawText(mHour.get(0), toX - fontSize / 2, contentHeight + paddingTop + 1.5f * fontSize, textPaint);
         //float oldX = toX, oldTempY = toTempY, oldHumiY = toHumiY;
 
-        for (int i = 1; i < dataSize; i++){
+        for (int i = 1; i < dataSize; i++) {
             toX += perColumnWidth;
 
-            toTempY += (mTemperature.get(i-1) - mTemperature.get(i))*perTempHeight;
+            toTempY += (mTemperature.get(i - 1) - mTemperature.get(i)) * perTempHeight;
             tempPath.lineTo(toX, toTempY);
-            canvas.drawCircle(toX,toTempY,markerSize/2,tempMarkerPaint);
-            canvas.drawText(String.valueOf(mTemperature.get(i)),toX - fontSize/2,toTempY + baseY/2,textPaint);
+            canvas.drawCircle(toX, toTempY, markerSize / 2, tempMarkerPaint);
+            canvas.drawText(String.valueOf(mTemperature.get(i)), toX - fontSize / 2, toTempY + baseY / 2, textPaint);
             //oldTempY = toTempY;
 
-            toHumiY += (mHumidity.get(i-1) - mHumidity.get(i))*perHumiHeight;
+            toHumiY += (mHumidity.get(i - 1) - mHumidity.get(i)) * perHumiHeight;
             HumiPath.lineTo(toX, toHumiY);
-            canvas.drawCircle(toX,toHumiY,markerSize/2, HumiMarkerPaint);
-            canvas.drawText(String.valueOf(mHumidity.get(i)),toX - fontSize/2,toHumiY + baseY/2,textPaint);
+            canvas.drawCircle(toX, toHumiY, markerSize / 2, HumiMarkerPaint);
+            canvas.drawText(String.valueOf(mHumidity.get(i)), toX - fontSize / 2, toHumiY + baseY / 2, textPaint);
             //oldHumiY = toHumiY;
 
-            qpfTop = (qpfMax - mQpf.get(i))*perQpfHeight + paddingTop;
-            qpfPath.addRect(toX - barWidth/2, qpfTop , toX - barWidth/4, paddingTop + contentHeight + density, Path.Direction.CW);
-            canvas.drawText(String.valueOf(mQpf.get(i)), toX - barWidth/2 + fontSize/4, contentHeight + paddingTop - fontSize/2, qpfTextPaint);
+            qpfTop = (qpfMax - mQpf.get(i)) * perQpfHeight + paddingTop;
+            qpfPath.addRect(toX - barWidth / 2, qpfTop, toX - barWidth / 4, paddingTop + contentHeight + density, Path.Direction.CW);
+            canvas.drawText(String.valueOf(mQpf.get(i)), toX - barWidth / 2 + fontSize / 4, contentHeight + paddingTop - fontSize / 2, qpfTextPaint);
 
-            popTop = paddingTop + (100 - mPop.get(i))*perPopHeight;
-            popPath.addRect(toX - barWidth/4, popTop , toX + barWidth /2, paddingTop + contentHeight + density, Path.Direction.CW);
-            canvas.drawText(String.valueOf(mPop.get(i)) + "%", toX - barWidth/2 + fontSize/4, contentHeight + paddingTop - fontSize*2, popTextPaint);
+            popTop = paddingTop + (100 - mPop.get(i)) * perPopHeight;
+            popPath.addRect(toX - barWidth / 4, popTop, toX + barWidth / 2, paddingTop + contentHeight + density, Path.Direction.CW);
+            canvas.drawText(String.valueOf(mPop.get(i)) + "%", toX - barWidth / 2 + fontSize / 4, contentHeight + paddingTop - fontSize * 2, popTextPaint);
 
-            canvas.drawText(mHour.get(i),toX - fontSize/2, contentHeight + paddingTop + 1.5f*fontSize, textPaint);
+            canvas.drawText(mHour.get(i), toX - fontSize / 2, contentHeight + paddingTop + 1.5f * fontSize, textPaint);
             //oldX = toX;
         }
         //Log.d(LOG_TAG,"text size: " + textPaint.getTextSize());
@@ -257,90 +259,14 @@ public class LineAndBarChartView extends ImageView {
 
         qpfBarPaint.setXfermode(pdfDstOver);
         popBarPaint.setXfermode(pdfDstOver);
-        canvas.drawPath(popPath,popBarPaint);
-        canvas.drawPath(qpfPath,qpfBarPaint);
+        canvas.drawPath(popPath, popBarPaint);
+        canvas.drawPath(qpfPath, qpfBarPaint);
         qpfBarPaint.setXfermode(null);
         popBarPaint.setXfermode(null);
 
     }
 
 
-    /**
-     * Gets the example string attribute value.
-     *
-     * @return The example string attribute value.
-     */
-    public String getExampleString() {
-        return mExampleString;
-    }
-
-    /**
-     * Sets the view's example string attribute value. In the example view, this string
-     * is the text to draw.
-     *
-     * @param exampleString The example string attribute value to use.
-     */
-    public void setExampleString(String exampleString) {
-        mExampleString = exampleString;
-        invalidateTextPaintAndMeasurements();
-    }
-
-    /**
-     * Gets the example color attribute value.
-     *
-     * @return The example color attribute value.
-     */
-    public int getExampleColor() {
-        return mExampleColor;
-    }
-
-    /**
-     * Sets the view's example color attribute value. In the example view, this color
-     * is the font color.
-     *
-     * @param exampleColor The example color attribute value to use.
-     */
-    public void setExampleColor(int exampleColor) {
-        mExampleColor = exampleColor;
-        invalidateTextPaintAndMeasurements();
-    }
-
-    /**
-     * Gets the example dimension attribute value.
-     *
-     * @return The example dimension attribute value.
-     */
-    public float getExampleDimension() {
-        return mExampleDimension;
-    }
-
-    /**
-     * Sets the view's example dimension attribute value. In the example view, this dimension
-     * is the font size.
-     *
-     * @param exampleDimension The example dimension attribute value to use.
-     */
-    public void setExampleDimension(float exampleDimension) {
-        mExampleDimension = exampleDimension;
-        invalidateTextPaintAndMeasurements();
-    }
-
-    /**
-     * Gets the example drawable attribute value.
-     *
-     * @return The example drawable attribute value.
-     */
-    public Drawable getExampleDrawable() {
-        return mExampleDrawable;
-    }
-
-    /**
-     * Sets the view's example drawable attribute value. In the example view, this drawable is
-     * drawn above the text.
-     *
-     * @param exampleDrawable The example drawable attribute value to use.
-     */
-    public void setExampleDrawable(Drawable exampleDrawable) {
-        mExampleDrawable = exampleDrawable;
-    }
 }
+
+

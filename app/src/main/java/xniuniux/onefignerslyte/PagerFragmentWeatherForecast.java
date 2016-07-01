@@ -42,7 +42,6 @@ public class PagerFragmentWeatherForecast extends Fragment {
     private Map<String, String> currentObsData;
     private ArrayList<Object> hourlyForecastData;
     private ArrayList<Map<String, String>> dailyForecastData;
-    private Map<String, Float> absLocation = new HashMap<>();
 
     private String mLocation;
     private int mUnit;
@@ -97,10 +96,12 @@ public class PagerFragmentWeatherForecast extends Fragment {
         ViewGroup bodyContainer =  (ViewGroup) rootView.findViewById(R.id.pager_body);
         View bodyRootView = inflater.inflate(R.layout.pager_body_weather_forecast, bodyContainer, true);
         View scrollview = bodyRootView.findViewById(R.id.scroll_panel);
+
         int pad = ((MainActivity) getActivity()).getStatusBarHeight()/2;
         scrollview.setPadding(pad, pad, pad, pad);
         weatherChart = (LineAndBarChartView) bodyRootView.findViewById(R.id.weather_stat_chart);
         dailyForecastView = (LinearLayout) bodyRootView.findViewById(R.id.bottom_information);
+
         new FetchWeather().execute();
         return rootView;
     }
@@ -116,7 +117,7 @@ public class PagerFragmentWeatherForecast extends Fragment {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
             String forecastJsonStr = null;
-            absLocation = ((MainActivity) getActivity()).getLocation();
+            Map<String, Float> absLocation = ((MainActivity) getActivity()).getLocation();
             String latitude;
             String longitude;
             if (absLocation != null) {
@@ -390,14 +391,24 @@ public class PagerFragmentWeatherForecast extends Fragment {
         }
 
         private void setDailyForecast(){
-            if (dailyForecastData == null ){ return; }
+            if (dailyForecastData == null ){
+                Log.d(LOG_TAG, "dailyForecastData is null");
+                return;
+            }
+
             for(int i = 0; i < 5; i++) {
-                Log.d(LOG_TAG, i + "");
+
                 Map<String,String> data = dailyForecastData.get(i);
                 ViewGroup child = (ViewGroup) dailyForecastView.getChildAt(i);
                 //TODO: icon
                 TextView textView = (TextView) child.getChildAt(1);
-                String text = data.get("week_short") + "\n" + data.get("low") + " - " + data.get("high");
+
+                String day;
+                if (i == 0) { day = "Today"; }
+                else if ( i == 1 ) { day = "Tomo"; }
+                else { day = data.get("week_short"); }
+
+                String text = day + "\n" + data.get("low") + " - " + data.get("high");
                 textView.setText(text);
             }
             dailyForecastView.requestLayout();
